@@ -4,7 +4,7 @@ Theme URI: https://region9weather.com/
 Description: Streamlined live weather studio child theme for GeneratePress with placeholder-driven forecast pages, live alerts, broadcasts, WeatherFront radar, and retro-styled current conditions.
 Author: Weather Support LLC
 Template: generatepress
-Version: 5.0.0
+Version: 5.2.0
 Text Domain: region9-studio
 */
 :root{--navy:#061827;--blue:#0b67b2;--sky:#35a9e0;--ink:#10202d;--light:#eef5fa;--white:#fff;--border:#d8e4ed;--red:#b5161b;--orange:#d96600;--green:#21833a;--radius:18px;--shadow:0 16px 42px rgba(4,24,40,.14)}*{box-sizing:border-box}body{margin:0;background:#f4f8fb;color:var(--ink)}.site.grid-container{max-width:none}.site-content{padding:0}.content-area{width:100%}.site-main{margin:0}.r9-wrap{max-width:1420px;margin:auto;padding:0 24px}
@@ -398,3 +398,5 @@ body.admin-bar .r9-header-stack{top:32px}
 @media(max-width:560px){.r9-system-status-grid{grid-template-columns:1fr}.r9-breaking-time{display:none}.r9-emergency-hero h1{font-size:1.65rem}}
 
 /* Region 9 Weather Studio v5.0 baseline update */
+
+/* Region 9 Weather Studio 5.2 */

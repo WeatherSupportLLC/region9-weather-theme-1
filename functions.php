@@ -177,3 +177,8 @@ add_action('after_setup_theme', function(){
 function r9ws_latest_update_string(){
     return wp_date('F j, Y g:i A T', null, wp_timezone());
 }
+
+if(!defined('R9WS_THEME_VERSION')) define('R9WS_THEME_VERSION','5.2.0');
+function r9ws_updated_stamp(){
+ return '<small class="r9ws-updated">Updated: '.esc_html(wp_date('M j, Y g:i A T')).'</small>';
+}
