@@ -1,0 +1,90 @@
+<?php if(r9_setting('emergency_mode',false)): ?>
+<section class="r9-emergency-hero" role="alert">
+ <div class="r9-wrap r9-emergency-grid">
+  <div><span class="r9-emergency-kicker">EMERGENCY MODE ACTIVE</span><h1>Region 9 Severe Weather Operations</h1><p><?php echo esc_html(r9_setting('maintenance_message','Active monitoring is underway. Review alerts, radar, and recommended actions.')); ?></p><div class="r9-emergency-actions"><a href="<?php echo esc_url(home_url('/alerts/')); ?>">Active Alerts</a><a href="<?php echo esc_url(home_url('/radar/')); ?>">Live Radar</a><a href="<?php echo esc_url(home_url('/storm-timing/')); ?>">Storm Timing</a></div></div>
+  <div class="r9-emergency-radar"><iframe title="Emergency radar" loading="eager" allowfullscreen src="<?php echo esc_url(r9_setting('radar_url','https://app.weatherfront.com/radar/KILX')); ?>"></iframe></div>
+ </div>
+</section>
+<?php endif; ?>
+<?php if(r9_setting('live_broadcast_enabled',false) && trim((string)r9_setting('live_video_url',''))): ?>
+<section class="r9-section r9-live-broadcast-top">
+  <div class="r9-wrap r9-home-media-wrap">
+    <div class="r9-section-title r9-live-title"><div><span class="r9-live-pill">LIVE</span><h2>Region 9 Live Broadcast</h2><p>Live weather coverage, briefings, and breaking updates.</p></div></div>
+    <?php echo r9_video_embed(); ?>
+  </div>
+</section>
+<?php endif; ?>
+
+<section class="r9-top-dashboard">
+  <div class="r9-wrap r9-operations-grid">
+    <article class="r9-panel r9-impact-dashboard">
+      <div class="r9-panel-head r9-panel-head-brand"><div><span class="r9-eyebrow">DECISION SUPPORT</span><h2>Decision Impact Dashboard</h2></div><span class="r9-risk <?php echo esc_attr(r9_risk_class());?>"><?php echo esc_html(r9_risk_label());?> risk</span></div>
+      <div class="r9-impact-list">
+        <?php foreach(array(
+          'Travel & Commute'=>'travel_impact',
+          'Agriculture'=>'ag_impact',
+          'Outdoor Events'=>'outdoor_impact',
+          'Fieldwork & Spraying'=>'fieldwork_impact',
+          'Livestock'=>'livestock_impact',
+          'School Activities'=>'school_impact',
+          'Construction & Outdoor Work'=>'work_impact',
+          'Forecast Confidence'=>'confidence'
+        ) as $label=>$key): $value=r9_setting($key,$key==='confidence'?'high':'good'); ?>
+          <div class="r9-impact r9-impact-<?php echo esc_attr(r9_impact_class($value));?>"><strong><?php echo esc_html($label);?></strong><span><?php echo esc_html(r9_impact_label($value));?></span></div>
+        <?php endforeach;?>
+      </div>
+      <div class="r9-dashboard-note"><?php echo wp_kses_post(wpautop(r9_setting('dashboard_note','Use the color-coded dashboard for quick operational decisions across Region 9.')));?></div>
+    </article>
+
+    <article class="r9-panel r9-current-panel">
+      <div class="r9-panel-head r9-panel-head-brand"><div><span class="r9-eyebrow">LIVE OBSERVATIONS</span><h2>Current Conditions</h2><small class="r9-click-hint">Select a city for its full forecast</small></div><div class="r9-mini-clock"><span id="r9-clock">--:--</span><small id="r9-date"></small></div></div>
+      <div class="r9-condition-stage r9-condition-stage-compact"><button class="r9-slide-button prev" aria-label="Previous city">‹</button><div id="r9-conditions" class="r9-conditions-slider"><div class="r9-condition-slide is-active"><div class="r9-weather-scene scene-loading"><div class="r9-retro-screen"><div class="r9-retro-icon">R9</div></div></div><div class="r9-condition-copy"><strong>Loading observations…</strong></div></div></div><button class="r9-slide-button next" aria-label="Next city">›</button></div><div id="r9-condition-dots" class="r9-slide-dots"></div>
+    </article>
+  </div>
+</section>
+
+<section class="r9-section r9-risk-operations-section">
+  <div class="r9-wrap r9-risk-operations-grid">
+    <article class="r9-panel r9-risk-guide-panel">
+      <div class="r9-panel-head"><div><span class="r9-eyebrow">PUBLIC SAFETY</span><h2>Severe Weather Risk Level Guide</h2></div><span class="r9-risk <?php echo esc_attr(r9_risk_class());?>">Current: <?php echo esc_html(r9_risk_label());?></span></div>
+      <img class="r9-risk-guide-image" src="<?php echo esc_url(get_stylesheet_directory_uri().'/assets/images/severe-weather-risk-level-guide.png'); ?>" alt="Region 9 Weather severe weather risk level guide for east-central Illinois">
+    </article>
+    <aside class="r9-panel-dark r9-operations-explainer">
+      <div class="r9-eyebrow">REGION 9 LIVE</div>
+      <h2>Weather Operations</h2>
+      <p class="r9-operations-summary">Weather Operations is the public access point for Region 9 Weather's active monitoring tools. Use it to review the latest forecast, understand current hazards, track storms on radar, and check watches or warnings affecting the area.</p>
+      <div class="r9-operations-links">
+        <a href="<?php echo esc_url(home_url('/daily/'));?>"><strong>Forecast</strong><span>Latest outlook</span></a>
+        <a href="<?php echo esc_url(home_url('/hazards/'));?>"><strong>Hazards</strong><span>Threat details</span></a>
+        <a href="<?php echo esc_url(home_url('/radar/'));?>"><strong>Radar</strong><span>Storm tracking</span></a>
+        <a href="<?php echo esc_url(home_url('/alerts/'));?>"><strong>Alerts</strong><span>Watches & warnings</span></a>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="r9-section r9-forecast-pair-section">
+  <div class="r9-wrap r9-forecast-pair-grid">
+    <article class="r9-panel r9-home-forecast-panel"><div class="r9-panel-head"><div><span class="r9-eyebrow">LATEST FORECAST</span><h2><?php echo esc_html(r9_setting('forecast_headline','Region 9 Daily Forecast'));?></h2></div></div><?php echo r9_media_placeholder('Daily Forecast Graphic','daily_image');?></article>
+    <article class="r9-panel r9-home-seven-day-panel"><div class="r9-panel-head"><div><span class="r9-eyebrow">EXTENDED OUTLOOK</span><h2>Seven-Day Forecast</h2></div></div><?php echo r9_media_placeholder('Seven-Day Forecast Graphic','seven_day_image');?></article>
+  </div>
+</section>
+
+
+<?php if(r9_setting('social_section_enabled',true)): ?>
+<section class="r9-section r9-social-section">
+  <div class="r9-wrap">
+    <div class="r9-panel r9-social-hub">
+      <div class="r9-panel-head"><div><span class="r9-eyebrow">CONNECT WITH REGION 9</span><h2>Social Media & Forecast Updates</h2><p>Follow, share, and stay connected with the latest Region 9 Weather information.</p></div></div>
+      <div class="r9-social-links">
+        <?php foreach(array('facebook'=>'Facebook','x'=>'X','instagram'=>'Instagram','youtube'=>'YouTube') as $network=>$label): $url=trim((string)r9_setting($network.'_url','')); if($url): ?>
+          <a class="r9-social-profile r9-social-<?php echo esc_attr($network); ?>" href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer"><strong><?php echo esc_html($label); ?></strong><span>Follow Region 9 Weather</span></a>
+        <?php endif; endforeach; ?>
+      </div>
+      <?php $social_shortcode=trim((string)r9_setting('social_feed_shortcode','')); if($social_shortcode): ?><div class="r9-social-feed"><?php echo do_shortcode($social_shortcode); ?></div><?php else: ?><div class="r9-social-feed-placeholder"><strong>Social feed area</strong><span>Paste a supported social-feed plugin shortcode in Region 9 Studio → Live Controls.</span></div><?php endif; ?>
+    </div>
+  </div>
+</section>
+<?php endif; ?>
+
+<section class="r9-section r9-radar"><div class="r9-wrap"><div class="r9-section-title r9-light-title"><div><h2>Live KILX Radar</h2><p>Interactive WeatherFront radar remains active.</p></div></div><div class="r9-panel"><iframe title="KILX WeatherFront Radar" loading="lazy" allowfullscreen src="<?php echo esc_url(r9_setting('radar_url','https://app.weatherfront.com/radar/KILX'));?>"></iframe></div></div></section>
