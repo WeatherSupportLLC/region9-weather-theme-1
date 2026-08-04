@@ -1,0 +1,19 @@
+name: Region 9 Live Studio Release Validation
+
+on:
+  pull_request:
+    paths:
+      - 'plugins/region9-live-studio/**'
+      - 'scripts/*region9-live-studio*'
+      - '.github/workflows/region9-live-studio-release.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+      - run: scripts/validate-region9-live-studio.sh
