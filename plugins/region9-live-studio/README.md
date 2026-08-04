@@ -1,40 +1,45 @@
-# Region 9 Live Studio 17 Alpha 4
+# Region 9 Live Studio 17 Alpha 5
 
-Alpha 4 converts the REST-first Alpha 3 foundation into an automated weather operations plugin. Automatic publishing is disabled by default; material changes require administrator approval before publish.
+Alpha 5 adds live national guidance ingestion to the automated Region 9 weather operations plugin. Automatic publishing remains disabled by default; source refresh, validation, and scoring never publish a change without the existing manual approval path.
 
 ## Architecture
 
 * `R9LS_Scheduler` owns WordPress Cron scheduling, duplicate prevention, validation locks, stale lock cleanup, scheduler health, and the shared validation path for manual and scheduled runs.
-* `R9LS_GIS_Engine` loads local GeoJSON county boundaries for the exact nine Region 9 counties: Adair, Audrain, Boone, Callaway, Chariton, Cole, Cooper, Howard, and Monroe. Runtime geocoding is not used.
-* `R9LS_Rule_Engine` centrally evaluates Travel, Agriculture, Fieldwork, Spraying, Harvest, Livestock, Outdoor Events, School Activities, Construction, Utilities, Emergency Operations, Forecast Confidence, and Severe Weather Risk.
+* `R9LS_National_Guidance` retrieves official national guidance with `wp_remote_get`, a configurable timeout and User-Agent, status-code and JSON validation, retry/backoff, success caching, stale fallback, latency tracking, last-success timestamps, and source-health persistence.
+* `R9LS_GIS_Engine` loads local GeoJSON county boundaries for Adair, Audrain, Boone, Callaway, Chariton, Cole, Cooper, Howard, and Monroe, then intersects Polygon and MultiPolygon national guidance with county geometry.
+* `R9LS_Rule_Engine` evaluates Region 9 products with deterministic rule weights for SPC category, WPC ERO category, NWS alerts, and WPC QPF factors while retaining county-specific impacts before Region 9 aggregation.
 * `R9LS_Material_Change_Engine` queues material rating, score, county, hazard, timing, confidence, alert, and source-health changes for approval.
 * `R9LS_Admin` provides the Region 9 Studio Automation workspace with escaped output, nonced admin-post write actions, and administrator-only writes.
 
+## Official endpoints selected
+
+* SPC Day 1 categorical convective outlook GeoJSON: `https://www.spc.noaa.gov/products/outlook/day1otlk_cat.nolyr.geojson`.
+* WPC Day 1 excessive rainfall outlook GeoJSON: `https://www.wpc.ncep.noaa.gov/qpf/ero_day1.geojson`.
+* WPC Day 1 QPF machine-readable GeoJSON: `https://www.wpc.ncep.noaa.gov/qpf/day1_qpf.geojson`.
+
+QPF values are normalized to inches internally. The parser accepts `qpf_in` directly or converts `qpf_mm` to inches using 25.4 millimeters per inch. Missing QPF values reduce confidence and are never replaced with climatology or fabricated precipitation.
+
+## Source health behavior
+
+National guidance distinguishes these states:
+
+* `healthy`: the source was fetched or cached successfully. A healthy zero-impact/no-intersection result remains available data, not a failure.
+* `stale_cached_result`: live refresh failed or official timestamps are stale, but a prior successful payload is still inside the stale-fallback window.
+* `unavailable_source`: HTTP, status-code, or payload retrieval failed and no stale payload is usable.
+* `malformed_geometry`: the source returned unsupported or invalid geometry.
+
+Degradation and recovery are logged when persisted source-health status changes. Validation duration and health are stored by the scheduler.
+
 ## Scheduler behavior
 
-Activation schedules one `r9ls_validate_weather_operations` cron event. Deactivation clears it. The default interval is hourly, the active-weather interval is configurable, and the minimum accepted interval is 15 minutes. Manual and cron validation both call the scheduler validation service. A 20-minute transient lock prevents overlap and stale locks are cleared safely.
+Activation schedules one `r9ls_validate_weather_operations` cron event. Deactivation clears it. Manual and cron validation both collect SPC Day 1, WPC Day 1 ERO, WPC Day 1 QPF, and NWS alert sources before rule evaluation. A source refresh success only updates inputs; publishing still requires manual approval.
 
-## GIS matching
+## Release validation
 
-SPC Day 1, WPC Day 1 ERO, and NWS alert geometries are matched to county boundaries with longitude/latitude GeoJSON coordinate order, Polygon and MultiPolygon support, bounding-box rejection, point-in-polygon tests, and segment intersection checks. Results distinguish healthy no-hazard/no-intersection outcomes from source failures.
-
-## Scoring rules
-
-All products use shared central scoring. Rules expose `r9ls_product_rules`, `r9ls_product_score`, and `r9ls_product_confidence` filters. Scores are clamped to 0-100. Missing or degraded data lowers confidence rather than silently producing normal confidence. County scores aggregate to the Region 9 score by using the maximum affected county score.
-
-Travel ratings: 0-24 Good, 25-49 Caution, 50-74 Difficult, 75-100 Dangerous.
-Region 9 risk: 0 None, 1 Low, 2 Limited, 3 Elevated, 4 Significant.
-
-## REST endpoints
-
-Alpha 4 keeps operations inside authenticated WordPress admin actions and does not add direct public write endpoints. Future REST endpoints must require authentication, capability checks, nonces, sanitization, and audit logging.
+Run `php scripts/validate-region9-live-studio.php`, PHP lint checks, `scripts/build-region9-live-studio-zip.sh`, and a plugin activation smoke test before release.
 
 ## Known limitations
 
 * Bundled county boundaries are simplified local operational fixtures and should be replaced with official production-grade county GeoJSON before public launch.
-* Weather source ingestion is filter-driven in Alpha 4; production API adapters remain a later milestone.
-* Timing change tolerance is represented in settings but natural-language timing normalization is intentionally conservative.
-
-## Release validation
-
-Run `php scripts/region9-alpha4-validate.php`, PHP lint checks, `scripts/build-region9-live-studio-zip.sh`, and review all admin-post write actions before release.
+* The official WPC QPF endpoint is consumed as machine-readable GeoJSON; if NOAA changes the schema, the parser will mark the source degraded rather than invent values.
+* Natural-language timing normalization remains conservative; timestamps are carried through from official machine-readable metadata when present.

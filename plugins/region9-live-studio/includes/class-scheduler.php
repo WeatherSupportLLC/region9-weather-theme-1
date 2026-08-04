@@ -11,11 +11,13 @@ class R9LS_Scheduler {
     private $audit;
     private $rules;
     private $changes;
+    private $guidance;
 
-    public function __construct($audit, $rules, $changes) {
+    public function __construct($audit, $rules, $changes, $guidance = null) {
         $this->audit = $audit;
         $this->rules = $rules;
         $this->changes = $changes;
+        $this->guidance = $guidance;
     }
 
     public function hooks() {
@@ -49,6 +51,8 @@ class R9LS_Scheduler {
             'confidence_threshold' => 60,
             'timing_tolerance_minutes' => 60,
             'automatic_publishing' => 0,
+            'national_guidance_timeout' => 12,
+            'national_guidance_user_agent' => 'Region9LiveStudio/17 Alpha5 (WeatherSupportLLC; WordPress wp_remote_get)',
         ));
         update_option(self::SETTINGS, $settings, false);
     }
@@ -131,11 +135,13 @@ class R9LS_Scheduler {
     }
 
     public function load_sources() {
-        return apply_filters('r9ls_weather_sources', array(
+        $sources = $this->guidance ? $this->guidance->collect_all() : array(
             'spc_day1' => array('status' => 'healthy', 'hazards' => array()),
             'wpc_day1_ero' => array('status' => 'healthy', 'hazards' => array()),
-            'nws_alerts' => array('status' => 'healthy', 'hazards' => array()),
-        ));
+            'wpc_day1_qpf' => array('status' => 'healthy', 'county_precipitation' => array()),
+        );
+        $sources['nws_alerts'] = $sources['nws_alerts'] ?? array('status' => 'healthy', 'hazards' => array());
+        return apply_filters('r9ls_weather_sources', $sources);
     }
 
     private function set_health($status, $message, $extra = array()) {
