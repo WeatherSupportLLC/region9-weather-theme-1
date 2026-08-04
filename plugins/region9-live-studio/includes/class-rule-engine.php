@@ -16,6 +16,7 @@ class R9LS_Rule_Engine {
             'spc' => $this->gis->intersect_source($sources['spc_day1'] ?? array('status' => 'failure')),
             'ero' => $this->gis->intersect_source($sources['wpc_day1_ero'] ?? array('status' => 'failure')),
             'alerts' => $this->gis->intersect_source($sources['nws_alerts'] ?? array('status' => 'failure')),
+            'qpf' => $sources['wpc_day1_qpf'] ?? array('status' => 'failure'),
         );
         $out = array();
         foreach ($this->products as $product) {
@@ -43,6 +44,20 @@ class R9LS_Rule_Engine {
             if ($result['highest_risk'] > 0) { $primary[] = $source_key; } else { $secondary[] = $source_key . ' no hazards'; }
             $trace[] = array('source' => $source_key, 'risk' => $result['highest_risk'], 'weight' => $weight, 'score_added' => $source_score);
         }
+        $qpf = $geo['qpf'];
+        if (($qpf['status'] ?? 'failure') !== 'healthy') {
+            $confidence -= 10;
+            $trace[] = array('source' => 'qpf', 'effect' => 'confidence -10', 'reason' => 'national QPF unavailable');
+        } else {
+            $qpf_weight = $rules['weights']['qpf'] ?? 4;
+            foreach ((array)($qpf['county_precipitation'] ?? array()) as $county => $amount) {
+                if ($amount !== null) { $county_scores[$county] = min(100, $county_scores[$county] + ((float)$amount * $qpf_weight)); }
+            }
+            $max_qpf = empty($qpf['county_precipitation']) ? 0 : max(array_map('floatval', array_filter($qpf['county_precipitation'], 'is_numeric')) ?: array(0));
+            $added = min(20, $max_qpf * $qpf_weight); $score += $added;
+            $trace[] = array('source' => 'qpf', 'max_inches' => $max_qpf, 'weight' => $qpf_weight, 'score_added' => $added);
+        }
+        $score = max($score, empty($county_scores) ? 0 : max($county_scores));
         $score = $this->clamp(apply_filters('r9ls_product_score', $score, $product, $sources, $geo));
         $confidence = $this->clamp(apply_filters('r9ls_product_confidence', $confidence, $product, $sources, $geo));
         return array(
@@ -69,7 +84,7 @@ class R9LS_Rule_Engine {
     }
 
     private function rules($product) {
-        $defaults = array('weights' => array('spc' => 18, 'ero' => 12, 'alerts' => 20));
+        $defaults = array('weights' => array('spc' => 18, 'ero' => 12, 'alerts' => 20, 'qpf' => 4));
         $product_rules = array(
             'Spraying' => array('weights' => array('spc' => 10, 'ero' => 18, 'alerts' => 18)),
             'Emergency Operations' => array('weights' => array('spc' => 22, 'ero' => 16, 'alerts' => 24)),

@@ -1,10 +1,10 @@
-name: Region 9 Live Studio Alpha 4
+name: Region 9 Live Studio Alpha 5
 on:
   pull_request:
     paths:
       - 'plugins/region9-live-studio/**'
       - 'scripts/**'
-      - '.github/workflows/region9-live-studio-alpha4.yml'
+      - '.github/workflows/region9-live-studio-alpha5.yml'
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -14,5 +14,5 @@ jobs:
         with:
           php-version: '8.2'
       - run: find plugins/region9-live-studio scripts -name '*.php' -print0 | xargs -0 -n1 php -l
-      - run: php scripts/region9-alpha4-validate.php
+      - run: php scripts/validate-region9-live-studio.php
       - run: scripts/build-region9-live-studio-zip.sh
