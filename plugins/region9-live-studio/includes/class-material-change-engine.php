@@ -46,6 +46,7 @@ class R9LS_Material_Change_Engine {
     }
 
     public function queue() { return get_option(self::QUEUE, array()); }
+    public function approved($id) { foreach ($this->history() as $item) { if (($item['id'] ?? '') === $id && ($item['decision'] ?? '') === 'approved') { return true; } } return false; }
     public function history() { return get_option(self::HISTORY, array()); }
 
     public function decide($id, $decision, $note = '') {

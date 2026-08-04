@@ -2,14 +2,16 @@
 defined('ABSPATH') || exit;
 
 class R9LS_Admin {
-    private $scheduler; private $changes; private $audit;
-    public function __construct($scheduler, $changes, $audit) { $this->scheduler = $scheduler; $this->changes = $changes; $this->audit = $audit; }
+    private $scheduler; private $changes; private $audit; private $publication;
+    public function __construct($scheduler, $changes, $audit, $publication) { $this->scheduler = $scheduler; $this->changes = $changes; $this->audit = $audit; $this->publication = $publication; }
     public function hooks() {
         add_action('admin_menu', array($this, 'menu'));
         add_action('admin_post_r9ls_validate', array($this, 'validate'));
         add_action('admin_post_r9ls_settings', array($this, 'settings'));
         add_action('admin_post_r9ls_change', array($this, 'change_action'));
         add_action('admin_post_r9ls_override', array($this, 'override'));
+        add_action('admin_post_r9ls_publish_state', array($this, 'publish_state'));
+        add_action('admin_post_r9ls_rollback_state', array($this, 'rollback_state'));
     }
     public function menu() { add_menu_page('Region 9 Studio Automation', 'Region 9 Studio', 'manage_options', 'r9ls', array($this, 'page'), 'dashicons-cloud', 58); }
     public function page() {
@@ -27,7 +29,7 @@ class R9LS_Admin {
         foreach (($products['Travel']['county_scores'] ?? array()) as $county => $score) { echo '<tr><th>' . esc_html($county) . '</th><td>' . esc_html((string) $score) . '</td></tr>'; }
         echo '</tbody></table><h2>Pending Material Changes</h2><table class="widefat"><tbody>';
         foreach ($queue as $id => $change) { echo '<tr><td>' . esc_html($change['product'] . ' ' . $change['field'] . ': ' . $change['reason']) . '</td><td>' . $this->button($id, 'approve') . $this->button($id, 'reject') . $this->button($id, 'publish') . $this->button($id, 'rollback') . '</td></tr>'; }
-        echo '</tbody></table><h2>Temporary Editor Overrides</h2><form method="post" action="' . esc_url(admin_url('admin-post.php')) . '"><input type="hidden" name="action" value="r9ls_override">'; wp_nonce_field('r9ls_override'); echo '<input name="summary" placeholder="Override summary"> <input type="datetime-local" name="expires">'; submit_button('Save Override'); echo '</form>';
+        echo '</tbody></table><h2>Publication</h2><p>Canonical version: ' . esc_html((string) ($this->publication->current()['publication_version'] ?? 0)) . '</p><form method="post" action="' . esc_url(admin_url('admin-post.php')) . '"><input type="hidden" name="action" value="r9ls_publish_state">'; wp_nonce_field('r9ls_publish_state'); submit_button('Publish Approved Current State'); echo '</form><form method="post" action="' . esc_url(admin_url('admin-post.php')) . '"><input type="hidden" name="action" value="r9ls_rollback_state">'; wp_nonce_field('r9ls_rollback_state'); echo '<input name="version" type="number" min="0" placeholder="History version">'; submit_button('Rollback Publication'); echo '</form><h2>Temporary Editor Overrides</h2><form method="post" action="' . esc_url(admin_url('admin-post.php')) . '"><input type="hidden" name="action" value="r9ls_override">'; wp_nonce_field('r9ls_override'); echo '<input name="product" placeholder="Product" value="Severe Weather Risk"> <input name="summary" placeholder="Override summary"> <input type="datetime-local" name="expires">'; submit_button('Save Override'); echo '</form>';
         echo '<h2>Decision History</h2><pre>' . esc_html(wp_json_encode($this->changes->history(), JSON_PRETTY_PRINT)) . '</pre><h2>Audit Log</h2><pre>' . esc_html(wp_json_encode($this->audit->all(), JSON_PRETTY_PRINT)) . '</pre>';
         echo '<h2>Settings</h2><form method="post" action="' . esc_url(admin_url('admin-post.php')) . '"><input type="hidden" name="action" value="r9ls_settings">'; wp_nonce_field('r9ls_settings');
         printf('<label>Active interval minutes <input name="active_interval_minutes" type="number" min="15" value="%d"></label><br>', absint($settings['active_interval_minutes'] ?? 60));
@@ -38,7 +40,9 @@ class R9LS_Admin {
     public function validate() { $this->guard('r9ls_validate'); $this->scheduler->manual_validate(); wp_safe_redirect(admin_url('admin.php?page=r9ls')); exit; }
     public function settings() { $this->guard('r9ls_settings'); update_option(R9LS_Scheduler::SETTINGS, array('active_interval_minutes' => max(15, absint($_POST['active_interval_minutes'] ?? 60)), 'score_movement_threshold' => absint($_POST['score_movement_threshold'] ?? 10), 'confidence_threshold' => min(100, absint($_POST['confidence_threshold'] ?? 60)), 'timing_tolerance_minutes' => 60, 'automatic_publishing' => 0), false); wp_safe_redirect(admin_url('admin.php?page=r9ls')); exit; }
     public function change_action() { $this->guard('r9ls_change'); $id = sanitize_text_field(wp_unslash($_POST['change_id'] ?? '')); $do = sanitize_key($_POST['do'] ?? ''); if ($do === 'approve' || $do === 'reject') { $this->changes->decide($id, $do); } elseif ($do === 'publish') { $this->changes->publish($id); } elseif ($do === 'rollback') { $this->changes->rollback($id); } wp_safe_redirect(admin_url('admin.php?page=r9ls')); exit; }
-    public function override() { $this->guard('r9ls_override'); $overrides = get_option('r9ls_editor_overrides', array()); $overrides[md5(time() . wp_rand())] = array('summary' => sanitize_text_field(wp_unslash($_POST['summary'] ?? '')), 'expires' => sanitize_text_field(wp_unslash($_POST['expires'] ?? ''))); update_option('r9ls_editor_overrides', $overrides, false); wp_safe_redirect(admin_url('admin.php?page=r9ls')); exit; }
+    public function override() { $this->guard('r9ls_override'); $this->publication->save_override(sanitize_text_field(wp_unslash($_POST['product'] ?? '')), sanitize_text_field(wp_unslash($_POST['summary'] ?? '')), sanitize_text_field(wp_unslash($_POST['expires'] ?? '')), get_current_user_id()); wp_safe_redirect(admin_url('admin.php?page=r9ls')); exit; }
+    public function publish_state() { $this->guard('r9ls_publish_state'); if (empty($this->changes->queue())) { $this->publication->publish_products(get_option(R9LS_Scheduler::CACHE, array()), '', get_current_user_id()); } else { $this->audit->write('warning', 'Publication blocked because pending changes require approval.'); } wp_safe_redirect(admin_url('admin.php?page=r9ls')); exit; }
+    public function rollback_state() { $this->guard('r9ls_rollback_state'); $this->publication->rollback(absint($_POST['version'] ?? 0), get_current_user_id()); wp_safe_redirect(admin_url('admin.php?page=r9ls')); exit; }
     private function guard($nonce) { if (!current_user_can('manage_options')) { wp_die('Administrator capability required.'); } check_admin_referer($nonce); }
     private function current_risk($products) { return $products['Severe Weather Risk']['rating'] ?? 'None'; }
 }

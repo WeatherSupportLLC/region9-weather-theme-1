@@ -1,4 +1,4 @@
-# Region 9 Live Studio 17 Alpha 5
+# Region 9 Live Studio 17 Alpha 6
 
 Alpha 5 adds live national guidance ingestion to the automated Region 9 weather operations plugin. Automatic publishing remains disabled by default; source refresh, validation, and scoring never publish a change without the existing manual approval path.
 
@@ -43,3 +43,43 @@ Run `php scripts/validate-region9-live-studio.php`, PHP lint checks, `scripts/bu
 * Bundled county boundaries are simplified local operational fixtures and should be replaced with official production-grade county GeoJSON before public launch.
 * The official WPC QPF endpoint is consumed as machine-readable GeoJSON; if NOAA changes the schema, the parser will mark the source degraded rather than invent values.
 * Natural-language timing normalization remains conservative; timestamps are carried through from official machine-readable metadata when present.
+
+## Alpha 6 publishing and website integration
+
+Alpha 6 introduces a single canonical publication state stored in the versioned `r9ls_publication_state_v1` option. Validation and ingestion still update the internal operational cache only; manual approval remains the default, and public rendering reads the canonical publication state instead of calling external weather APIs.
+
+### Public read-only REST endpoints
+
+* `GET /wp-json/region9-live-studio/v1/publication` returns publication metadata, version, products, and active non-expired overrides.
+* `GET /wp-json/region9-live-studio/v1/products` returns the published product map.
+* `GET /wp-json/region9-live-studio/v1/products/{product}` returns one published product by name.
+
+### Administrator write endpoints and actions
+
+All write endpoints require `manage_options`:
+
+* `POST /wp-json/region9-live-studio/v1/publish` publishes the current validated cache into the canonical state. If `change_id` is supplied, that material change must already be approved.
+* `POST /wp-json/region9-live-studio/v1/rollback` with `version` creates a new publication version from an immutable history version.
+* `POST /wp-json/region9-live-studio/v1/overrides` with `product`, `summary`, and `expires` creates a temporary expiring editor override.
+
+The admin screen also exposes manual publish, rollback, and override controls through nonced `admin-post.php` actions.
+
+### Theme integration
+
+Use the non-invasive shortcode `[region9_live_studio product="Severe Weather Risk"]` to render a REST-compatible public card from the local canonical publication state. Themes can also fetch the public REST endpoints client-side; those responses are read-only and do not call SPC, WPC, NWS, or other external weather APIs during page rendering.
+
+### Publishing guarantees
+
+* Publication history is immutable and append-only in `r9ls_publication_history_v1`.
+* Duplicate publishes are prevented with a SHA-256 content hash.
+* Rollback creates a new publication version rather than mutating old history.
+* Cache invalidation runs after publish, rollback, override creation, and override expiration via `r9ls_publication_cache_invalidated`.
+* Overrides expire automatically when the canonical state is read by validation tooling or via explicit expiration.
+
+### Alpha 6 pre-merge verification
+
+* Homepage and product-page integrations must follow `Scheduler → Decision Engine → Publication State → REST → Page`; public pages should never request NOAA/SPC/WPC/NWS endpoints directly.
+* Homepage, Daily Forecast, Travel, Agriculture, Outdoor, Construction, Livestock, and Forecast Confidence views should all read the same canonical `r9ls_publication_state_v1` data through the shortcode or public REST endpoints.
+* Scheduled validation writes only to the operational cache and pending-change queue; it does not overwrite the canonical publication state.
+* Public REST responses expose approved publication metadata and product content only. They intentionally omit pending decisions, override records, audit history, source payloads, and rule traces.
+* Cache invalidation is targeted to the changed product keys plus the publication-state key. The plugin does not perform full-site cache flushes.
