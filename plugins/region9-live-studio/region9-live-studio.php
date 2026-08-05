@@ -50,20 +50,22 @@ final class R9LS_Plugin {
         $this->rules = new R9LS_Rule_Engine($this->gis, $this->audit);
         $this->changes = new R9LS_Material_Change_Engine($this->audit);
         $this->guidance = new R9LS_National_Guidance($this->gis, $this->audit);
-        $this->scheduler = new R9LS_Scheduler($this->audit, $this->rules, $this->changes, $this->guidance);
         $this->timing = new R9LS_Timing_Engine();
         $this->products = new R9LS_Product_Generator($this->rules, $this->changes, $this->audit, $this->timing);
+        $this->scheduler = new R9LS_Scheduler($this->audit, $this->rules, $this->changes, $this->guidance, $this->products);
         $this->rest = new R9LS_REST_API($this->products);
-        $this->admin = new R9LS_Admin($this->scheduler, $this->changes, $this->audit);
+        $this->admin = new R9LS_Admin($this->scheduler, $this->changes, $this->audit, $this->products);
     }
 
     public function boot() {
+        R9LS_Product_Generator::migrate_17_1($this->audit);
         $this->scheduler->hooks();
         $this->admin->hooks();
         $this->rest->hooks();
     }
 
     public static function activate() {
+        R9LS_Product_Generator::migrate_17_1(self::instance()->audit);
         self::instance()->scheduler->activate();
     }
 

@@ -5,11 +5,7 @@ add_action('admin_menu',function(){
   remove_submenu_page('r9-studio','r9-studio-setup');
   remove_submenu_page('r9-studio','r9-studio-health');
   remove_submenu_page('r9-studio','r9-studio-backup');
-  add_submenu_page('r9ls','Theme Site Setup','Theme Site Setup','manage_options','r9-studio-setup','r9_studio_setup_page');
-  add_submenu_page('r9ls','Theme System Health','Theme System Health','manage_options','r9-studio-health','r9_studio_health_page');
-  add_submenu_page('r9ls','Theme Backup & Restore','Theme Backup & Restore','manage_options','r9-studio-backup','r9_studio_backup_page');
-  add_submenu_page('r9ls','Theme Live Controls','Theme Live Controls','manage_options','customize.php?autofocus[section]=r9_studio');
-  foreach(r9_restored_admin_pages() as $slug=>$label){ add_submenu_page('r9ls',$label,$label,'manage_options',$slug,'r9_restored_admin_page'); }
+  // The active plugin owns every Region 9 Studio submenu and callback.
   return;
  }
  add_menu_page('Region 9 Studio','Region 9 Studio','manage_options','r9-studio','r9_studio_admin','dashicons-cloud','3');

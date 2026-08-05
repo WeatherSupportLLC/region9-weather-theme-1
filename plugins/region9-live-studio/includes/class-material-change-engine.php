@@ -61,7 +61,7 @@ class R9LS_Material_Change_Engine {
 
     public function publish($id) {
         foreach ($this->history() as $item) {
-            if ($item['id'] === $id && $item['decision'] === 'approved') {
+            if (($item['id'] ?? '') === $id && ($item['decision'] ?? '') === 'approved') {
                 update_option('r9ls_last_publish', array('change' => $item, 'published_at' => current_time('mysql')), false);
                 $this->audit->write('info', 'Approved material change published.', array('id' => $id));
                 return true;
