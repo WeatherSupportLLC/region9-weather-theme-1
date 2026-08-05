@@ -6,7 +6,7 @@ class R9LS_Product_Generator {
     const HISTORY = 'r9ls_product_history';
     const STATE = 'r9ls_approved_publication_state';
     const CACHE_PREFIX = 'r9ls_public_product_';
-    const VERSION = '17.0.0-alpha.8';
+    const VERSION = '17.0.0-rc.1';
     const COUNTIES = array('Kankakee','Iroquois','Ford','Livingston','DeWitt','Piatt','Champaign','Vermilion','McLean');
     private $rules; private $changes; private $timing; private $audit;
 
