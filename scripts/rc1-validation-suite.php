@@ -3,7 +3,7 @@ if (!defined('ABSPATH')) { define('ABSPATH', __DIR__); }
 error_reporting(E_ALL);
 set_error_handler(function($severity, $message, $file, $line){ throw new ErrorException($message, 0, $severity, $file, $line); });
 function absint($v){ return abs((int)$v); } function sanitize_key($v){ return preg_replace('/[^a-z0-9_\-]/','', strtolower((string)$v)); }
-function sanitize_text_field($v){ return is_array($v) ? '' : trim(strip_tags((string)$v)); } function sanitize_email($v){ return filter_var((string)$v, FILTER_SANITIZE_EMAIL); } function wp_json_encode($v,$o=0){ return json_encode($v,$o); }
+function sanitize_text_field($v){ return is_array($v) ? '' : trim(strip_tags((string)$v)); } function sanitize_email($v){ return filter_var((string)$v, FILTER_SANITIZE_EMAIL); } function esc_url_raw($v){ return filter_var((string)$v, FILTER_SANITIZE_URL); } function wp_json_encode($v,$o=0){ return json_encode($v,$o); }
 $GLOBALS['filters']=array(); function apply_filters($tag,$value){ foreach (($GLOBALS['filters'][$tag] ?? array()) as $cb) { $value = $cb($value); } return $value; } function add_filter($tag,$cb){ $GLOBALS['filters'][$tag][]=$cb; } function add_action(){} function add_shortcode(){} function register_rest_route($ns,$route,$args){ $GLOBALS['rest_routes'][$ns.$route]=$args; }
 function __return_true(){ return true; } function current_time($type='mysql'){ return $type==='timestamp' ? time() : date('Y-m-d H:i:s'); } function wp_date($f,$ts=null){ return date($f,$ts?:time()); } function get_bloginfo($k){ return '6.6-test'; }
 $GLOBALS['wp_options']=array(); $GLOBALS['wp_transients']=array(); $GLOBALS['scheduled']=array(); $GLOBALS['http_queue']=array(); $GLOBALS['db_writes']=0;

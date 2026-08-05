@@ -12,12 +12,14 @@ class R9LS_Scheduler {
     private $rules;
     private $changes;
     private $guidance;
+    private $generator;
 
-    public function __construct($audit, $rules, $changes, $guidance = null) {
+    public function __construct($audit, $rules, $changes, $guidance = null, $generator = null) {
         $this->audit = $audit;
         $this->rules = $rules;
         $this->changes = $changes;
         $this->guidance = $guidance;
+        $this->generator = $generator;
     }
 
     public function hooks() {
@@ -94,20 +96,28 @@ class R9LS_Scheduler {
         }
         set_transient(self::LOCK, time(), 20 * MINUTE_IN_SECONDS);
         try {
-            $products = $this->rules->evaluate_all($this->load_sources());
+            $sources = $this->load_sources();
+            $products = $this->rules->evaluate_all($sources);
             $previous = get_option(self::CACHE, array());
             $changes = $this->changes->detect($previous, $products);
             update_option(self::CACHE, $products, false);
-            if (class_exists('R9LS_Product_Generator')) {
-                $generator = new R9LS_Product_Generator($this->rules, $this->changes, $this->audit);
-                $generator->refresh_workspace_from_decision($products, $changes, $mode, 'validation-' . gmdate('YmdHis'));
+            $generator = $this->generator;
+            if (!$generator && class_exists('R9LS_Product_Generator')) { $generator = new R9LS_Product_Generator($this->rules, $this->changes, $this->audit); }
+            $generation = array();
+            if ($generator) {
+                $generation = $generator->refresh_workspace_from_decision($products, $changes, $mode, 'validation-' . gmdate('YmdHis'), array(
+                    'actor'=>$mode === 'manual' ? 'wordpress-admin' : 'scheduler',
+                    'validation_duration'=>round(microtime(true) - $started, 3),
+                    'source_health_summary'=>$this->source_health_summary($sources),
+                    'source_version_reference'=>'validation-' . gmdate('YmdHis'),
+                ));
             }
             $duration = round(microtime(true) - $started, 3);
             $last = array('time' => current_time('mysql'), 'mode' => sanitize_key($mode), 'duration' => $duration, 'changes' => count($changes));
             update_option(self::LAST, $last, false);
             $this->set_health('healthy', 'Last validation completed.', $last);
             $this->audit->write('info', 'Validation completed.', $last);
-            return array('status' => 'ok', 'products' => $products, 'changes' => $changes, 'duration' => $duration);
+            return array('status' => 'ok', 'products' => $products, 'changes' => $changes, 'workspace' => $generation, 'duration' => $duration);
         } catch (Exception $e) {
             $this->audit->write('error', 'Validation failed.', array('error' => $e->getMessage()));
             $this->set_health('failure', 'Validation failed: ' . $e->getMessage());
@@ -159,5 +169,13 @@ class R9LS_Scheduler {
 
     private function set_health($status, $message, $extra = array()) {
         update_option(self::HEALTH, array_merge(array('status' => $status, 'message' => $message, 'updated' => current_time('mysql')), $extra), false);
+    }
+
+    private function source_health_summary($sources) {
+        $summary = array();
+        foreach ((array) $sources as $key => $source) {
+            $summary[sanitize_key($key)] = sanitize_key($source['source_health'] ?? $source['status'] ?? 'unknown');
+        }
+        return $summary;
     }
 }
