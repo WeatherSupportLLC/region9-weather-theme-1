@@ -4,6 +4,7 @@ define('R9_STUDIO_VERSION','4.0.0');
 require_once get_stylesheet_directory().'/inc/customizer.php';
 require_once get_stylesheet_directory().'/inc/admin-studio.php';
 require_once get_stylesheet_directory().'/inc/widgets.php';
+require_once get_stylesheet_directory().'/inc/live-studio-integration.php';
 
 add_action('wp_enqueue_scripts', function(){
   wp_enqueue_style('generatepress-parent', get_template_directory_uri().'/style.css', array(), null);

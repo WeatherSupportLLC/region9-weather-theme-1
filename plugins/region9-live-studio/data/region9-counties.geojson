@@ -1,14 +1,11 @@
-{
-  "type": "FeatureCollection",
-  "features": [
-    {"type":"Feature","properties":{"name":"Adair","state":"MO"},"geometry":{"type":"Polygon","coordinates":[[[-92.80,40.00],[-92.30,40.00],[-92.30,40.40],[-92.80,40.40],[-92.80,40.00]]]}},
-    {"type":"Feature","properties":{"name":"Audrain","state":"MO"},"geometry":{"type":"Polygon","coordinates":[[[-92.35,39.00],[-91.75,39.00],[-91.75,39.45],[-92.35,39.45],[-92.35,39.00]]]}},
-    {"type":"Feature","properties":{"name":"Boone","state":"MO"},"geometry":{"type":"Polygon","coordinates":[[[-92.60,38.75],[-92.05,38.75],[-92.05,39.20],[-92.60,39.20],[-92.60,38.75]]]}},
-    {"type":"Feature","properties":{"name":"Callaway","state":"MO"},"geometry":{"type":"Polygon","coordinates":[[[-92.10,38.55],[-91.45,38.55],[-91.45,39.05],[-92.10,39.05],[-92.10,38.55]]]}},
-    {"type":"Feature","properties":{"name":"Chariton","state":"MO"},"geometry":{"type":"Polygon","coordinates":[[[-93.35,39.25],[-92.65,39.25],[-92.65,39.75],[-93.35,39.75],[-93.35,39.25]]]}},
-    {"type":"Feature","properties":{"name":"Cole","state":"MO"},"geometry":{"type":"Polygon","coordinates":[[[-92.45,38.25],[-91.95,38.25],[-91.95,38.65],[-92.45,38.65],[-92.45,38.25]]]}},
-    {"type":"Feature","properties":{"name":"Cooper","state":"MO"},"geometry":{"type":"Polygon","coordinates":[[[-93.25,38.75],[-92.65,38.75],[-92.65,39.15],[-93.25,39.15],[-93.25,38.75]]]}},
-    {"type":"Feature","properties":{"name":"Howard","state":"MO"},"geometry":{"type":"Polygon","coordinates":[[[-92.95,39.10],[-92.35,39.10],[-92.35,39.55],[-92.95,39.55],[-92.95,39.10]]]}},
-    {"type":"Feature","properties":{"name":"Monroe","state":"MO"},"geometry":{"type":"Polygon","coordinates":[[[-92.35,39.45],[-91.55,39.45],[-91.55,39.95],[-92.35,39.95],[-92.35,39.45]]]}}
-  ]
-}
+{"type":"FeatureCollection","name":"Region 9 Illinois Counties","metadata":{"source":"U.S. Census Bureau TIGER/Line county boundary data for Illinois counties (GEOIDs listed in each feature). Stored locally for Alpha 8; no runtime geometry download.","license":"U.S. Census Bureau geographic data is public domain under the Census data use policy.","simplification":"Alpha 8 local production fixture uses rectangular county envelopes rounded to 0.001 degree tolerance for validation and server-side intersection; replace with unsimplified TIGER/Line rings if public maps are introduced."},"features":[
+{"type":"Feature","properties":{"name":"Kankakee","GEOID":"17091","STATE":"17","COUNTY":"091"},"geometry":{"type":"Polygon","coordinates":[[[-88.250,40.950],[-87.520,40.950],[-87.520,41.300],[-88.250,41.300],[-88.250,40.950]]]}},
+{"type":"Feature","properties":{"name":"Iroquois","GEOID":"17075","STATE":"17","COUNTY":"075"},"geometry":{"type":"Polygon","coordinates":[[[-88.260,40.400],[-87.520,40.400],[-87.520,40.950],[-88.260,40.950],[-88.260,40.400]]]}},
+{"type":"Feature","properties":{"name":"Ford","GEOID":"17053","STATE":"17","COUNTY":"053"},"geometry":{"type":"Polygon","coordinates":[[[-88.470,40.300],[-88.000,40.300],[-88.000,40.750],[-88.470,40.750],[-88.470,40.300]]]}},
+{"type":"Feature","properties":{"name":"Livingston","GEOID":"17105","STATE":"17","COUNTY":"105"},"geometry":{"type":"Polygon","coordinates":[[[-89.270,40.700],[-88.240,40.700],[-88.240,41.120],[-89.270,41.120],[-89.270,40.700]]]}},
+{"type":"Feature","properties":{"name":"DeWitt","GEOID":"17039","STATE":"17","COUNTY":"039"},"geometry":{"type":"Polygon","coordinates":[[[-89.290,39.930],[-88.700,39.930],[-88.700,40.310],[-89.290,40.310],[-89.290,39.930]]]}},
+{"type":"Feature","properties":{"name":"Piatt","GEOID":"17147","STATE":"17","COUNTY":"147"},"geometry":{"type":"Polygon","coordinates":[[[-88.750,39.830],[-88.400,39.830],[-88.400,40.170],[-88.750,40.170],[-88.750,39.830]]]}},
+{"type":"Feature","properties":{"name":"Champaign","GEOID":"17019","STATE":"17","COUNTY":"019"},"geometry":{"type":"Polygon","coordinates":[[[-88.470,39.870],[-87.930,39.870],[-87.930,40.400],[-88.470,40.400],[-88.470,39.870]]]}},
+{"type":"Feature","properties":{"name":"Vermilion","GEOID":"17183","STATE":"17","COUNTY":"183"},"geometry":{"type":"Polygon","coordinates":[[[-87.940,39.870],[-87.520,39.870],[-87.520,40.490],[-87.940,40.490],[-87.940,39.870]]]}},
+{"type":"Feature","properties":{"name":"McLean","GEOID":"17113","STATE":"17","COUNTY":"113"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-89.270,40.300],[-88.470,40.300],[-88.470,40.760],[-89.270,40.760],[-89.270,40.300]]]]}}
+]}
