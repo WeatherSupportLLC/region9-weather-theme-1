@@ -12,7 +12,7 @@ class R9LS_National_Guidance {
         'wpc_ero_day1_url' => 'https://www.wpc.ncep.noaa.gov/qpf/ero_day1.geojson',
         'wpc_qpf_day1_url' => 'https://www.wpc.ncep.noaa.gov/qpf/day1_qpf.geojson',
         'timeout' => 12,
-        'user_agent' => 'Region9LiveStudio/17 Alpha5 (WeatherSupportLLC; WordPress wp_remote_get)',
+        'user_agent' => 'Region9LiveStudio/17 Alpha7 (WeatherSupportLLC; WordPress wp_remote_get)',
         'cache_ttl' => 1800,
         'stale_ttl' => 21600,
         'max_age' => 86400,

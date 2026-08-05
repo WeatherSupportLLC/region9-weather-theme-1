@@ -1,6 +1,6 @@
-# Region 9 Live Studio 17 Alpha 5
+# Region 9 Live Studio 17 Alpha 7
 
-Alpha 5 adds live national guidance ingestion to the automated Region 9 weather operations plugin. Automatic publishing remains disabled by default; source refresh, validation, and scoring never publish a change without the existing manual approval path.
+Alpha 7 adds live national guidance ingestion to the automated Region 9 weather operations plugin. Automatic publishing remains disabled by default; source refresh, validation, and scoring never publish a change without the existing manual approval path.
 
 ## Architecture
 
@@ -43,3 +43,7 @@ Run `php scripts/validate-region9-live-studio.php`, PHP lint checks, `scripts/bu
 * Bundled county boundaries are simplified local operational fixtures and should be replaced with official production-grade county GeoJSON before public launch.
 * The official WPC QPF endpoint is consumed as machine-readable GeoJSON; if NOAA changes the schema, the parser will mark the source degraded rather than invent values.
 * Natural-language timing normalization remains conservative; timestamps are carried through from official machine-readable metadata when present.
+
+## Alpha 7 Forecast Production Engine
+
+See `docs-alpha7.md` for product schema, timing normalization, county aggregation, REST endpoints, theme helpers, security behavior, known limitations, and staging installation instructions.
