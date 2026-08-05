@@ -28,3 +28,22 @@ class R9LS_REST_API {
 function r9ls_get_published_products() { return get_option(R9LS_Product_Generator::PRODUCTS, array()); }
 function r9ls_get_published_product($product_id) { $all = r9ls_get_published_products(); $id = sanitize_key($product_id); return $all[$id] ?? null; }
 function r9ls_get_widget_payload($product_id = 'todays-forecast') { $p = r9ls_get_published_product($product_id); return $p && ($p['publication_state'] ?? '') === 'published' ? array('product_id'=>$p['product_id'],'title'=>$p['title'],'summary'=>$p['summary'],'risk'=>$p['risk'],'updated_at'=>$p['updated_at']) : array(); }
+
+function r9ls_get_public_products() {
+    $cached = get_transient(R9LS_Product_Generator::CACHE_PREFIX . 'all');
+    if ($cached !== false) { return $cached; }
+    $all = get_option(R9LS_Product_Generator::PRODUCTS, array());
+    $out = array();
+    foreach ((array) $all as $id => $p) {
+        if (($p['approval_state'] ?? '') === 'approved' && ($p['publication_state'] ?? '') === 'published') {
+            $clean = $p;
+            unset($clean['rule_trace'], $clean['override_internals'], $clean['audit_log']);
+            $out[$id] = $clean;
+        }
+    }
+    set_transient(R9LS_Product_Generator::CACHE_PREFIX . 'all', $out, 5 * MINUTE_IN_SECONDS);
+    return $out;
+}
+function r9ls_get_public_product($product_id) { $all = r9ls_get_public_products(); $id = sanitize_key($product_id); return $all[$id] ?? null; }
+function r9ls_public_settings() { return wp_parse_args(get_option(R9LS_Scheduler::SETTINGS, array()), array('nws_contact_email'=>'weather@region9weather.com','normal_validation_interval_minutes'=>180,'active_interval_minutes'=>60,'source_timeout_seconds'=>10,'cache_duration_minutes'=>5,'stale_data_threshold_minutes'=>720,'confidence_threshold'=>60,'material_change_threshold'=>10,'automatic_publishing'=>0,'required_healthy_sources'=>array('nws_alerts','spc_day1','wpc_day1_ero','wpc_day1_qpf'),'enabled_products'=>array_keys(R9LS_Product_Generator::product_definitions()),'fallback_language'=>'Region 9 Live Studio publication is temporarily unavailable.','public_display_options'=>array('show_scores'=>true,'show_counties'=>true),'stale_banner_behavior'=>'label')); }
+function r9ls_theme_integration_status() { return array('status'=>'healthy','message'=>'Canonical published product helpers are available.'); }

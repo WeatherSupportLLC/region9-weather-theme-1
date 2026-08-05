@@ -400,3 +400,6 @@ body.admin-bar .r9-header-stack{top:32px}
 /* Region 9 Weather Studio v5.0 baseline update */
 
 /* Region 9 Weather Studio 5.2 */
+
+/* Region 9 Live Studio Alpha 8 canonical product components */
+.r9ls-product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem;align-items:start}.r9ls-product-card{display:flex;flex-direction:column;gap:.85rem}.r9ls-product-card .r9-shareable-media{margin:0}.r9ls-risk-badge{display:inline-flex;align-items:center;border-radius:999px;padding:.35rem .7rem;font-weight:800;background:#e8eef8;color:#102033}.r9ls-summary{font-size:1.02rem;line-height:1.55}.r9ls-confidence{display:grid;grid-template-columns:auto 1fr auto;gap:.5rem;align-items:center}.r9ls-confidence meter{width:100%;height:.75rem}.r9ls-timing,.r9ls-counties,.r9ls-updated{margin:0}.r9ls-source-stale{color:#9a5b00}.r9ls-source-unavailable,.r9ls-product-card.is-unavailable{color:#7a1f1f}.r9ls-discussion summary{cursor:pointer;font-weight:800}.r9ls-discussion summary:focus{outline:3px solid #f6c343;outline-offset:3px}@media(max-width:640px){.r9ls-product-grid{grid-template-columns:1fr}.r9ls-confidence{grid-template-columns:1fr}.r9ls-risk-badge{width:max-content}}

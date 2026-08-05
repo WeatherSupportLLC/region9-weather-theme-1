@@ -18,22 +18,13 @@
 <section class="r9-top-dashboard">
   <div class="r9-wrap r9-operations-grid">
     <article class="r9-panel r9-impact-dashboard">
-      <div class="r9-panel-head r9-panel-head-brand"><div><span class="r9-eyebrow">DECISION SUPPORT</span><h2>Decision Impact Dashboard</h2></div><span class="r9-risk <?php echo esc_attr(r9_risk_class());?>"><?php echo esc_html(r9_risk_label());?> risk</span></div>
+      <div class="r9-panel-head r9-panel-head-brand"><div><span class="r9-eyebrow">DECISION SUPPORT</span><h2>Decision Impact Dashboard</h2><small>Latest publication: <?php echo esc_html(r9ls_theme_latest_publication_time()); ?></small></div><?php echo r9ls_theme_risk_badge(r9ls_theme_home_value('severe-weather-risk','risk',array('label'=>r9_risk_label()))); ?></div>
       <div class="r9-impact-list">
-        <?php foreach(array(
-          'Travel & Commute'=>'travel_impact',
-          'Agriculture'=>'ag_impact',
-          'Outdoor Events'=>'outdoor_impact',
-          'Fieldwork & Spraying'=>'fieldwork_impact',
-          'Livestock'=>'livestock_impact',
-          'School Activities'=>'school_impact',
-          'Construction & Outdoor Work'=>'work_impact',
-          'Forecast Confidence'=>'confidence'
-        ) as $label=>$key): $value=r9_setting($key,$key==='confidence'?'high':'good'); ?>
-          <div class="r9-impact r9-impact-<?php echo esc_attr(r9_impact_class($value));?>"><strong><?php echo esc_html($label);?></strong><span><?php echo esc_html(r9_impact_label($value));?></span></div>
+        <?php foreach(array('Travel & Commute'=>'travel','Agriculture'=>'agriculture','Outdoor Events'=>'outdoor','Fieldwork & Spraying'=>'fieldwork','Livestock'=>'livestock','School Activities'=>'schools','Construction & Outdoor Work'=>'construction','Forecast Confidence'=>'forecast-confidence') as $label=>$pid): $product=r9ls_theme_product($pid); $value=$product?($product['risk']['label']??($product['score']??'good')):r9_setting($pid,'good'); ?>
+          <div class="r9-impact r9-impact-<?php echo esc_attr(r9_impact_class($value));?>"><strong><?php echo esc_html($label);?></strong><span><?php echo esc_html($product?($product['summary']??r9_impact_label($value)):r9_impact_label($value));?></span></div>
         <?php endforeach;?>
       </div>
-      <div class="r9-dashboard-note"><?php echo wp_kses_post(wpautop(r9_setting('dashboard_note','Use the color-coded dashboard for quick operational decisions across Region 9.')));?></div>
+      <div class="r9-dashboard-note"><strong>Morning Weather Brief:</strong> <?php echo esc_html(r9ls_theme_home_value('morning-brief')); ?><br><strong>Weather Headlines:</strong> <?php echo esc_html(r9ls_theme_home_value('headlines')); ?><br><strong>Affected counties:</strong> <?php $r9hp=r9ls_theme_product('severe-weather-risk'); echo esc_html($r9hp && !empty($r9hp['affected_counties']) ? implode(', ', $r9hp['affected_counties']) : 'None specified'); ?></div>
     </article>
 
     <article class="r9-panel r9-current-panel">
@@ -65,8 +56,8 @@
 
 <section class="r9-section r9-forecast-pair-section">
   <div class="r9-wrap r9-forecast-pair-grid">
-    <article class="r9-panel r9-home-forecast-panel"><div class="r9-panel-head"><div><span class="r9-eyebrow">LATEST FORECAST</span><h2><?php echo esc_html(r9_setting('forecast_headline','Region 9 Daily Forecast'));?></h2></div></div><?php echo r9_media_placeholder('Daily Forecast Graphic','daily_image');?></article>
-    <article class="r9-panel r9-home-seven-day-panel"><div class="r9-panel-head"><div><span class="r9-eyebrow">EXTENDED OUTLOOK</span><h2>Seven-Day Forecast</h2></div></div><?php echo r9_media_placeholder('Seven-Day Forecast Graphic','seven_day_image');?></article>
+    <?php echo r9ls_theme_card('todays-forecast'); ?>
+    <?php echo r9ls_theme_card('seven-day-forecast'); ?>
   </div>
 </section>
 
