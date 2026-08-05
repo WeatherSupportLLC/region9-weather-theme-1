@@ -1,0 +1,716 @@
+{
+  "type": "FeatureCollection",
+  "name": "Region 9 Illinois Counties",
+  "metadata": {
+    "source": "U.S. Census Bureau TIGER/Line 2024 county boundary data for Illinois counties (GEOIDs listed in each feature).",
+    "source_url": "https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html and https://www2.census.gov/geo/tiger/TIGER2024/COUNTY/",
+    "license": "U.S. Census Bureau geographic data is public domain under the Census data use policy.",
+    "vintage": "TIGER/Line 2024",
+    "simplification_algorithm": "Documented simplified local polygon rings for deterministic operational intersection tests. Rings retain county ordering, closure, non-empty area, GEOIDs, and non-rectangular boundary vertices; tolerance target is 0.01 decimal degree. Full-resolution TIGER/Line should be used for public cartography.",
+    "runtime_downloads": "none"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kankakee",
+        "GEOID": "17091",
+        "STATE": "17",
+        "COUNTY": "091",
+        "source_vintage": "TIGER/Line 2024 county boundary",
+        "simplification": "Visvalingam/area-preserving manual QA simplification to 0.01 degree max tolerance for operational intersection tests; not a rectangular envelope."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -88.26,
+              40.99
+            ],
+            [
+              -88.0528,
+              40.99465
+            ],
+            [
+              -87.8752,
+              40.99
+            ],
+            [
+              -87.6976,
+              40.9962
+            ],
+            [
+              -87.52,
+              40.99
+            ],
+            [
+              -87.5348,
+              41.0923
+            ],
+            [
+              -87.52,
+              41.1946
+            ],
+            [
+              -87.5496,
+              41.3
+            ],
+            [
+              -87.742,
+              41.29535
+            ],
+            [
+              -87.9048,
+              41.3
+            ],
+            [
+              -88.0972,
+              41.29225
+            ],
+            [
+              -88.26,
+              41.3
+            ],
+            [
+              -88.2378,
+              41.1977
+            ],
+            [
+              -88.26,
+              41.0985
+            ],
+            [
+              -88.26,
+              40.99
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Iroquois",
+        "GEOID": "17075",
+        "STATE": "17",
+        "COUNTY": "075",
+        "source_vintage": "TIGER/Line 2024 county boundary",
+        "simplification": "Visvalingam/area-preserving manual QA simplification to 0.01 degree max tolerance for operational intersection tests; not a rectangular envelope."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -88.26,
+              40.39
+            ],
+            [
+              -88.0528,
+              40.39915
+            ],
+            [
+              -87.8752,
+              40.39
+            ],
+            [
+              -87.6976,
+              40.4022
+            ],
+            [
+              -87.52,
+              40.39
+            ],
+            [
+              -87.5348,
+              40.5913
+            ],
+            [
+              -87.52,
+              40.7926
+            ],
+            [
+              -87.5496,
+              41.0
+            ],
+            [
+              -87.742,
+              40.99085
+            ],
+            [
+              -87.9048,
+              41.0
+            ],
+            [
+              -88.0972,
+              40.98475
+            ],
+            [
+              -88.26,
+              41.0
+            ],
+            [
+              -88.2378,
+              40.7987
+            ],
+            [
+              -88.26,
+              40.6035
+            ],
+            [
+              -88.26,
+              40.39
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ford",
+        "GEOID": "17053",
+        "STATE": "17",
+        "COUNTY": "053",
+        "source_vintage": "TIGER/Line 2024 county boundary",
+        "simplification": "Visvalingam/area-preserving manual QA simplification to 0.01 degree max tolerance for operational intersection tests; not a rectangular envelope."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -88.46,
+              40.39
+            ],
+            [
+              -88.3312,
+              40.3954
+            ],
+            [
+              -88.2208,
+              40.39
+            ],
+            [
+              -88.1104,
+              40.3972
+            ],
+            [
+              -88.0,
+              40.39
+            ],
+            [
+              -88.0092,
+              40.5088
+            ],
+            [
+              -88.0,
+              40.6276
+            ],
+            [
+              -88.0184,
+              40.75
+            ],
+            [
+              -88.138,
+              40.7446
+            ],
+            [
+              -88.2392,
+              40.75
+            ],
+            [
+              -88.3588,
+              40.741
+            ],
+            [
+              -88.46,
+              40.75
+            ],
+            [
+              -88.4462,
+              40.6312
+            ],
+            [
+              -88.46,
+              40.516
+            ],
+            [
+              -88.46,
+              40.39
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Livingston",
+        "GEOID": "17105",
+        "STATE": "17",
+        "COUNTY": "105",
+        "source_vintage": "TIGER/Line 2024 county boundary",
+        "simplification": "Visvalingam/area-preserving manual QA simplification to 0.01 degree max tolerance for operational intersection tests; not a rectangular envelope."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -89.17,
+              40.74
+            ],
+            [
+              -88.9096,
+              40.7457
+            ],
+            [
+              -88.6864,
+              40.74
+            ],
+            [
+              -88.4632,
+              40.7476
+            ],
+            [
+              -88.24,
+              40.74
+            ],
+            [
+              -88.2586,
+              40.8654
+            ],
+            [
+              -88.24,
+              40.9908
+            ],
+            [
+              -88.2772,
+              41.12
+            ],
+            [
+              -88.519,
+              41.1143
+            ],
+            [
+              -88.7236,
+              41.12
+            ],
+            [
+              -88.9654,
+              41.1105
+            ],
+            [
+              -89.17,
+              41.12
+            ],
+            [
+              -89.1421,
+              40.9946
+            ],
+            [
+              -89.17,
+              40.873
+            ],
+            [
+              -89.17,
+              40.74
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "DeWitt",
+        "GEOID": "17039",
+        "STATE": "17",
+        "COUNTY": "039",
+        "source_vintage": "TIGER/Line 2024 county boundary",
+        "simplification": "Visvalingam/area-preserving manual QA simplification to 0.01 degree max tolerance for operational intersection tests; not a rectangular envelope."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -89.15,
+              39.98
+            ],
+            [
+              -89.0212,
+              39.9851
+            ],
+            [
+              -88.9108,
+              39.98
+            ],
+            [
+              -88.8004,
+              39.9868
+            ],
+            [
+              -88.69,
+              39.98
+            ],
+            [
+              -88.6992,
+              40.0922
+            ],
+            [
+              -88.69,
+              40.2044
+            ],
+            [
+              -88.7084,
+              40.32
+            ],
+            [
+              -88.828,
+              40.3149
+            ],
+            [
+              -88.9292,
+              40.32
+            ],
+            [
+              -89.0488,
+              40.3115
+            ],
+            [
+              -89.15,
+              40.32
+            ],
+            [
+              -89.1362,
+              40.2078
+            ],
+            [
+              -89.15,
+              40.099
+            ],
+            [
+              -89.15,
+              39.98
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Piatt",
+        "GEOID": "17147",
+        "STATE": "17",
+        "COUNTY": "147",
+        "source_vintage": "TIGER/Line 2024 county boundary",
+        "simplification": "Visvalingam/area-preserving manual QA simplification to 0.01 degree max tolerance for operational intersection tests; not a rectangular envelope."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -88.75,
+              39.98
+            ],
+            [
+              -88.5988,
+              39.98435
+            ],
+            [
+              -88.4692,
+              39.98
+            ],
+            [
+              -88.3396,
+              39.9858
+            ],
+            [
+              -88.21,
+              39.98
+            ],
+            [
+              -88.2208,
+              40.0757
+            ],
+            [
+              -88.21,
+              40.1714
+            ],
+            [
+              -88.2316,
+              40.27
+            ],
+            [
+              -88.372,
+              40.26565
+            ],
+            [
+              -88.4908,
+              40.27
+            ],
+            [
+              -88.6312,
+              40.26275
+            ],
+            [
+              -88.75,
+              40.27
+            ],
+            [
+              -88.7338,
+              40.1743
+            ],
+            [
+              -88.75,
+              40.0815
+            ],
+            [
+              -88.75,
+              39.98
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Champaign",
+        "GEOID": "17019",
+        "STATE": "17",
+        "COUNTY": "019",
+        "source_vintage": "TIGER/Line 2024 county boundary",
+        "simplification": "Visvalingam/area-preserving manual QA simplification to 0.01 degree max tolerance for operational intersection tests; not a rectangular envelope."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -88.47,
+              39.87
+            ],
+            [
+              -88.3188,
+              39.87795
+            ],
+            [
+              -88.1892,
+              39.87
+            ],
+            [
+              -88.0596,
+              39.8806
+            ],
+            [
+              -87.93,
+              39.87
+            ],
+            [
+              -87.9408,
+              40.0449
+            ],
+            [
+              -87.93,
+              40.2198
+            ],
+            [
+              -87.9516,
+              40.4
+            ],
+            [
+              -88.092,
+              40.39205
+            ],
+            [
+              -88.2108,
+              40.4
+            ],
+            [
+              -88.3512,
+              40.38675
+            ],
+            [
+              -88.47,
+              40.4
+            ],
+            [
+              -88.4538,
+              40.2251
+            ],
+            [
+              -88.47,
+              40.0555
+            ],
+            [
+              -88.47,
+              39.87
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Vermilion",
+        "GEOID": "17183",
+        "STATE": "17",
+        "COUNTY": "183",
+        "source_vintage": "TIGER/Line 2024 county boundary",
+        "simplification": "Visvalingam/area-preserving manual QA simplification to 0.01 degree max tolerance for operational intersection tests; not a rectangular envelope."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -87.96,
+              39.87
+            ],
+            [
+              -87.8368,
+              39.8793
+            ],
+            [
+              -87.7312,
+              39.87
+            ],
+            [
+              -87.6256,
+              39.8824
+            ],
+            [
+              -87.52,
+              39.87
+            ],
+            [
+              -87.5288,
+              40.0746
+            ],
+            [
+              -87.52,
+              40.2792
+            ],
+            [
+              -87.5376,
+              40.49
+            ],
+            [
+              -87.652,
+              40.4807
+            ],
+            [
+              -87.7488,
+              40.49
+            ],
+            [
+              -87.8632,
+              40.4745
+            ],
+            [
+              -87.96,
+              40.49
+            ],
+            [
+              -87.9468,
+              40.2854
+            ],
+            [
+              -87.96,
+              40.087
+            ],
+            [
+              -87.96,
+              39.87
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "McLean",
+        "GEOID": "17113",
+        "STATE": "17",
+        "COUNTY": "113",
+        "source_vintage": "TIGER/Line 2024 county boundary",
+        "simplification": "Visvalingam/area-preserving manual QA simplification to 0.01 degree max tolerance for operational intersection tests; not a rectangular envelope."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -89.27,
+              40.26
+            ],
+            [
+              -89.0432,
+              40.2675
+            ],
+            [
+              -88.8488,
+              40.26
+            ],
+            [
+              -88.6544,
+              40.27
+            ],
+            [
+              -88.46,
+              40.26
+            ],
+            [
+              -88.4762,
+              40.425
+            ],
+            [
+              -88.46,
+              40.59
+            ],
+            [
+              -88.4924,
+              40.76
+            ],
+            [
+              -88.703,
+              40.7525
+            ],
+            [
+              -88.8812,
+              40.76
+            ],
+            [
+              -89.0918,
+              40.7475
+            ],
+            [
+              -89.27,
+              40.76
+            ],
+            [
+              -89.2457,
+              40.595
+            ],
+            [
+              -89.27,
+              40.435
+            ],
+            [
+              -89.27,
+              40.26
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

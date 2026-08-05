@@ -1,0 +1,86 @@
+name: Region 9 Live Studio RC1 Hardening
+
+on:
+  pull_request:
+    branches: [release/v17-rc1-hardening]
+  workflow_dispatch:
+
+jobs:
+  rc1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: PHP lint plugin and theme files
+        run: |
+          find plugins/region9-live-studio inc -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l functions.php
+      - name: Existing validation suite
+        run: php scripts/validate-region9-live-studio.php
+      - name: RC1 full validation suite
+        run: php scripts/rc1-validation-suite.php
+      - name: Theme RC1 admin integration check
+        run: php scripts/validate-theme-rc1-admin-integration.php
+      - name: RC1 public surface preservation check
+        run: php scripts/validate-rc1-public-surface.php
+      - name: v15/v17 parity inventory guard
+        run: php scripts/validate-v15-parity.php
+      - name: RC1 final certification
+        run: php scripts/rc1-final-certification.php --full
+      - name: Short scheduler soak
+        run: php scripts/rc1-scheduler-soak.php 10 2
+      - name: Build plugin ZIP and manifest
+        run: scripts/build-region9-live-studio-zip.sh
+      - name: Build theme ZIP
+        run: scripts/build-region9-weather-theme-zip.sh
+      - name: Verify generated release artifacts
+        run: |
+          set -euo pipefail
+          mapfile -t zips < <(find build -maxdepth 1 -type f -name 'region9-live-studio-*.zip' | sort)
+          if [ "${#zips[@]}" -ne 1 ]; then
+            printf 'Expected exactly one Region 9 Live Studio ZIP, found %s:\n' "${#zips[@]}" >&2
+            printf '%s\n' "${zips[@]:-}" >&2
+            exit 1
+          fi
+          zip="${zips[0]}"
+          echo "ZIP=$zip" >> "$GITHUB_ENV"
+          unzip -t "$zip"
+          unzip -l "$zip" region9-live-studio/region9-live-studio.php | grep -q 'region9-live-studio/region9-live-studio.php'
+          if [ -f build/SHA256SUMS.txt ]; then
+            (cd build && sha256sum -c SHA256SUMS.txt)
+            grep -Fq "$(basename "$zip")" build/SHA256SUMS.txt
+          fi
+          manifest=$(find build -maxdepth 1 -type f -name 'region9-live-studio-*-manifest.json' | sort | head -n 1 || true)
+          if [ -n "$manifest" ]; then
+            echo "MANIFEST=$manifest" >> "$GITHUB_ENV"
+            python - <<'PY' "$manifest" "$zip"
+          import json, os, sys
+          manifest_path, zip_path = sys.argv[1:3]
+          with open(manifest_path, encoding='utf-8') as fh:
+              data = json.load(fh)
+          artifacts = data.get('artifacts') or []
+          expected = os.path.basename(zip_path)
+          if len(artifacts) != 1 or artifacts[0].get('file') != expected:
+              raise SystemExit(f'manifest artifact mismatch: expected {expected}, got {artifacts!r}')
+          if artifacts[0].get('size_bytes') != os.path.getsize(zip_path):
+              raise SystemExit('manifest size does not match ZIP size')
+          PY
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: region9-live-studio-rc1-final-artifacts
+          path: |
+            build/region9-live-studio-*.zip
+            build/region9-weather-theme-*.zip
+            build/SHA256SUMS.txt
+            build/region9-live-studio-*-manifest.json
+            build/rc1-test-report.json
+            build/rc1-soak-report.json
+            build/rc1-public-surface-report.json
+            build/v15-parity-report.json
+            build/rc1-final-certification.json
+            build/rc1-final-certification.txt
+            build/rc1-final-certification.md
+          if-no-files-found: error
