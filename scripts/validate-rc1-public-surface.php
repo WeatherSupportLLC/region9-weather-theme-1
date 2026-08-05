@@ -37,7 +37,7 @@ pass('public templates avoid unfinished labels', stripos($functions . $page, 'co
 pass('Live Studio products are inserted only within existing content area', strpos($page, 'r9ls_theme_product_grid($slug)') !== false && strpos($page, 'get_header()') < strpos($page, 'r9ls_theme_product_grid($slug)'));
 pass('footer Region 9 identity preserved', strpos($footer, 'Region 9 Weather') !== false && strpos($footer, 'Weather Support LLC') !== false);
 pass('legacy theme admin remains available when RC1 inactive', strpos($admin, "add_menu_page('Region 9 Studio'") !== false && strpos($admin, 'Legacy theme controls shown only when Region 9 Live Studio RC1 is inactive') !== false);
-pass('RC1 active routes theme tools under plugin menu', strpos($admin, "add_submenu_page('r9ls'") !== false && strpos($admin, "remove_menu_page('r9-studio')") !== false);
+pass('RC1 active delegates theme tools to authoritative plugin menu', strpos($admin, 'The active plugin owns every Region 9 Studio submenu') !== false && strpos($admin, "remove_menu_page('r9-studio')") !== false && strpos($admin, "add_submenu_page('r9ls'") === false);
 pass('RC1 detection is helper-based not slug-only', strpos($integration, 'function r9ls_theme_rc1_active') !== false && strpos($integration, 'version_compare') !== false && strpos($integration, '17.0.0-rc.1') !== false);
 pass('theme package excludes plugin and development directories', strpos($theme_build, 'cp -R "$ROOT/inc" "$ROOT/assets"') !== false && strpos($theme_build, 'plugins') === false && strpos($theme_build, '.github') === false);
 pass('no public MutationObserver DOM scanning introduced', strpos(readf($root . '/assets/js/studio.js'), 'MutationObserver') === false && strpos(readf($root . '/assets/js/v52.js'), 'MutationObserver') === false);

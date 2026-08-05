@@ -44,7 +44,7 @@ assert_true('RC1 plugin detection', r9ls_theme_rc1_active());
 assert_true('legacy top-level dashboard not registered', empty($GLOBALS['menus']['r9-studio']));
 assert_true('legacy menu removal attempted', in_array('r9-studio', $GLOBALS['removed'], true));
 $parents = array_column($GLOBALS['submenus'], 'parent_slug');
-assert_true('theme support pages move under RC1 plugin menu', in_array('r9ls', $parents, true) && !in_array('r9-studio', $parents, true));
+assert_true('active plugin exclusively owns support submenus', !in_array('r9ls', $parents, true) && !in_array('r9-studio', $parents, true));
 try { r9_studio_admin(); } catch (Throwable $e) {}
 assert_true('legacy dashboard redirects to RC1 admin', strpos($GLOBALS['redirect'], 'page=r9ls') !== false);
 echo "Theme RC1 admin integration validation complete.\n";
