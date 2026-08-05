@@ -1,0 +1,38 @@
+name: Region 9 Live Studio RC1 Hardening
+
+on:
+  pull_request:
+    branches: [release/v17-rc1-hardening]
+  workflow_dispatch:
+
+jobs:
+  rc1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: PHP lint plugin and theme files
+        run: |
+          find plugins/region9-live-studio inc -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l functions.php
+      - name: Existing validation suite
+        run: php scripts/validate-region9-live-studio.php
+      - name: RC1 full validation suite
+        run: php scripts/rc1-validation-suite.php
+      - name: Short scheduler soak
+        run: php scripts/rc1-scheduler-soak.php 10 2
+      - name: Build plugin ZIP and manifest
+        run: scripts/build-region9-live-studio-zip.sh
+      - name: Verify release manifest
+        run: test -s build/region9-live-studio-17.0.0-rc.1-manifest.json && test -s build/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: region9-live-studio-rc1-artifacts
+          path: |
+            build/region9-live-studio-17.0.0-rc.1.zip
+            build/SHA256SUMS.txt
+            build/region9-live-studio-17.0.0-rc.1-manifest.json
+            build/rc1-test-report.json
+            build/rc1-soak-report.json
