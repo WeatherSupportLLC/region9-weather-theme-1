@@ -52,7 +52,7 @@ class R9LS_Scheduler {
             'timing_tolerance_minutes' => 60,
             'automatic_publishing' => 0,
             'national_guidance_timeout' => 12,
-            'national_guidance_user_agent' => 'Region9LiveStudio/17 Alpha7 (WeatherSupportLLC; WordPress wp_remote_get)',
+            'national_guidance_user_agent' => 'Region9LiveStudio/17 RC1 (WeatherSupportLLC; WordPress wp_remote_get)',
         ));
         update_option(self::SETTINGS, $settings, false);
     }
@@ -131,6 +131,12 @@ class R9LS_Scheduler {
     }
 
     public function next_validation() {
+        $next = wp_next_scheduled(self::HOOK);
+        if ($next) {
+            return $next;
+        }
+        $this->ensure_defaults();
+        $this->schedule_event();
         return wp_next_scheduled(self::HOOK);
     }
 
@@ -139,8 +145,11 @@ class R9LS_Scheduler {
             'spc_day1' => array('status' => 'healthy', 'hazards' => array()),
             'wpc_day1_ero' => array('status' => 'healthy', 'hazards' => array()),
             'wpc_day1_qpf' => array('status' => 'healthy', 'county_precipitation' => array()),
+            'nws_alerts' => array('status' => 'healthy', 'hazards' => array()),
+            'nws_points_grid_hourly' => array('status' => 'healthy', 'forecast_periods' => array(), 'hourly_periods' => array()),
         );
         $sources['nws_alerts'] = $sources['nws_alerts'] ?? array('status' => 'healthy', 'hazards' => array());
+        $sources['nws_points_grid_hourly'] = $sources['nws_points_grid_hourly'] ?? array('status' => 'healthy', 'forecast_periods' => array(), 'hourly_periods' => array());
         return apply_filters('r9ls_weather_sources', $sources);
     }
 
