@@ -1,12 +1,12 @@
-# Region 9 Live Studio 17 Alpha 7
+# Region 9 Live Studio 17 RC1
 
-Alpha 7 adds live national guidance ingestion to the automated Region 9 weather operations plugin. Automatic publishing remains disabled by default; source refresh, validation, and scoring never publish a change without the existing manual approval path.
+RC1 hardens the automated Region 9 weather operations plugin for staging validation and production release readiness. Automatic publishing remains disabled by default; source refresh, validation, scoring, product generation, and rollback never publish a change without the existing manual approval path.
 
 ## Architecture
 
 * `R9LS_Scheduler` owns WordPress Cron scheduling, duplicate prevention, validation locks, stale lock cleanup, scheduler health, and the shared validation path for manual and scheduled runs.
 * `R9LS_National_Guidance` retrieves official national guidance with `wp_remote_get`, a configurable timeout and User-Agent, status-code and JSON validation, retry/backoff, success caching, stale fallback, latency tracking, last-success timestamps, and source-health persistence.
-* `R9LS_GIS_Engine` loads local GeoJSON county boundaries for Adair, Audrain, Boone, Callaway, Chariton, Cole, Cooper, Howard, and Monroe, then intersects Polygon and MultiPolygon national guidance with county geometry.
+* `R9LS_GIS_Engine` loads local GeoJSON county boundaries for Kankakee, Iroquois, Ford, Livingston, DeWitt, Piatt, Champaign, Vermilion, and McLean, then intersects Polygon and MultiPolygon national guidance with county geometry.
 * `R9LS_Rule_Engine` evaluates Region 9 products with deterministic rule weights for SPC category, WPC ERO category, NWS alerts, and WPC QPF factors while retaining county-specific impacts before Region 9 aggregation.
 * `R9LS_Material_Change_Engine` queues material rating, score, county, hazard, timing, confidence, alert, and source-health changes for approval.
 * `R9LS_Admin` provides the Region 9 Studio Automation workspace with escaped output, nonced admin-post write actions, and administrator-only writes.
@@ -36,14 +36,18 @@ Activation schedules one `r9ls_validate_weather_operations` cron event. Deactiva
 
 ## Release validation
 
-Run `php scripts/validate-region9-live-studio.php`, PHP lint checks, `scripts/build-region9-live-studio-zip.sh`, and a plugin activation smoke test before release.
+Run `php scripts/validate-region9-live-studio.php`, PHP lint checks, `scripts/build-region9-live-studio-zip.sh`, and a plugin activation smoke test before release. Complete the RC1 evidence gates in `docs/rc1-production-hardening.md`, including clean install/upgrade validation, 24-48 hour scheduler soak testing, operational scenarios, publication workflow validation, public rendering checks, accessibility and responsive review, security review, compatibility matrix, performance measurements, final ZIP checksums, launch checklist sign-off, and rollback rehearsal.
 
 ## Known limitations
 
-* Bundled county boundaries are simplified local operational fixtures and should be replaced with official production-grade county GeoJSON before public launch.
+* RC1 requires launch evidence that bundled county boundaries have been reviewed against the selected official U.S. Census Bureau TIGER/Line vintage, with checksum and reviewer recorded in `docs/rc1-launch-checklist.md`.
 * The official WPC QPF endpoint is consumed as machine-readable GeoJSON; if NOAA changes the schema, the parser will mark the source degraded rather than invent values.
 * Natural-language timing normalization remains conservative; timestamps are carried through from official machine-readable metadata when present.
 
-## Alpha 7 Forecast Production Engine
+## RC1 Forecast Production Engine
 
 See `docs-alpha7.md` for product schema, timing normalization, county aggregation, REST endpoints, theme helpers, security behavior, known limitations, and staging installation instructions.
+
+## RC1 production hardening
+
+The complete RC1 staging and launch checklist lives in `docs/rc1-production-hardening.md`. Release evidence templates are available in `docs/rc1-release-notes.md`, `docs/rc1-launch-checklist.md`, and `docs/rc1-rollback-procedure.md`.
