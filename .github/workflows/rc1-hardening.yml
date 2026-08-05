@@ -1,43 +1,40 @@
-name: Region 9 Live Studio Alpha 8
+name: Region 9 Live Studio RC1 Hardening
+
 on:
-  push:
-    paths:
-      - 'plugins/region9-live-studio/**'
-      - 'inc/live-studio-integration.php'
-      - 'functions.php'
-      - 'front-page.php'
-      - 'page.php'
-      - 'template-parts-studio-home.php'
-      - 'scripts/**'
-      - '.github/workflows/alpha8-live-studio.yml'
   pull_request:
-    paths:
-      - 'plugins/region9-live-studio/**'
-      - '**.php'
-      - 'scripts/**'
-      - '.github/workflows/alpha8-live-studio.yml'
+    branches: [release/v17-rc1-hardening]
+  workflow_dispatch:
+
 jobs:
-  validate:
+  rc1:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-      - name: Lint plugin PHP
-        run: find plugins/region9-live-studio -name '*.php' -print0 | xargs -0 -n1 php -l
-      - name: Lint changed theme PHP
-        run: php -l functions.php && php -l page.php && php -l template-parts-studio-home.php && php -l inc/live-studio-integration.php
-      - name: Run validation suite
+      - name: PHP lint plugin and theme files
+        run: |
+          find plugins/region9-live-studio inc -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l functions.php
+      - name: Existing validation suite
         run: php scripts/validate-region9-live-studio.php
+      - name: RC1 full validation suite
+        run: php scripts/rc1-validation-suite.php
       - name: Theme RC1 admin integration check
         run: php scripts/validate-theme-rc1-admin-integration.php
       - name: RC1 public surface preservation check
         run: php scripts/validate-rc1-public-surface.php
       - name: v15/v17 parity inventory guard
         run: php scripts/validate-v15-parity.php
-      - name: Build plugin ZIP
-        run: bash scripts/build-region9-live-studio-zip.sh
+      - name: RC1 final certification
+        run: php scripts/rc1-final-certification.php --full
+      - name: Short scheduler soak
+        run: php scripts/rc1-scheduler-soak.php 10 2
+      - name: Build plugin ZIP and manifest
+        run: scripts/build-region9-live-studio-zip.sh
+      - name: Build theme ZIP
+        run: scripts/build-region9-weather-theme-zip.sh
       - name: Verify generated release artifacts
         run: |
           set -euo pipefail
@@ -73,11 +70,17 @@ jobs:
           fi
       - uses: actions/upload-artifact@v4
         with:
-          name: region9-live-studio-release-artifacts
+          name: region9-live-studio-rc1-final-artifacts
           path: |
             build/region9-live-studio-*.zip
+            build/region9-weather-theme-*.zip
             build/SHA256SUMS.txt
             build/region9-live-studio-*-manifest.json
+            build/rc1-test-report.json
+            build/rc1-soak-report.json
             build/rc1-public-surface-report.json
             build/v15-parity-report.json
+            build/rc1-final-certification.json
+            build/rc1-final-certification.txt
+            build/rc1-final-certification.md
           if-no-files-found: error

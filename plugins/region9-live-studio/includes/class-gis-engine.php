@@ -18,8 +18,11 @@ class R9LS_GIS_Engine {
         }
         $county_risks = array_fill_keys($this->county_names(), 0);
         foreach ((array) ($source['hazards'] ?? array()) as $hazard) {
-            $geometry = $hazard['geometry'] ?? null;
             $risk = isset($hazard['risk']) ? absint($hazard['risk']) : 1;
+            foreach ((array)($hazard['affected_counties'] ?? array()) as $county) {
+                if (isset($county_risks[$county])) { $county_risks[$county] = max($county_risks[$county], $risk); }
+            }
+            $geometry = $hazard['geometry'] ?? null;
             if (!$this->valid_geometry($geometry)) {
                 continue;
             }

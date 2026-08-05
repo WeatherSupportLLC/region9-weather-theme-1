@@ -84,11 +84,11 @@ class R9LS_Rule_Engine {
     }
 
     private function rules($product) {
-        $defaults = array('weights' => array('spc' => 18, 'ero' => 12, 'alerts' => 20, 'qpf' => 4));
+        $defaults = array('weights' => array('spc' => 14, 'ero' => 10, 'alerts' => 12, 'qpf' => 4));
         $product_rules = array(
             'Spraying' => array('weights' => array('spc' => 10, 'ero' => 18, 'alerts' => 18)),
-            'Emergency Operations' => array('weights' => array('spc' => 22, 'ero' => 16, 'alerts' => 24)),
-            'Severe Weather Risk' => array('weights' => array('spc' => 25, 'ero' => 8, 'alerts' => 24)),
+            'Emergency Operations' => array('weights' => array('spc' => 20, 'ero' => 16, 'alerts' => 20)),
+            'Severe Weather Risk' => array('weights' => array('spc' => 22, 'ero' => 8, 'alerts' => 18)),
             'Forecast Confidence' => array('weights' => array('spc' => 6, 'ero' => 6, 'alerts' => 6)),
         );
         return apply_filters('r9ls_product_rules', $product_rules[$product] ?? $defaults, $product);
