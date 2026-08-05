@@ -1,14 +1,14 @@
 <?php
 /**
  * Plugin Name: Region 9 Live Studio
- * Description: Automated Region 9 weather operations engine (Alpha 8).
- * Version: 17.0.0-alpha.8
+ * Description: Automated Region 9 weather operations engine (RC1).
+ * Version: 17.0.0-rc.1
  * Author: Weather Support LLC
  */
 
 defined('ABSPATH') || exit;
 
-define('R9LS_VERSION', '17.0.0-alpha.8');
+define('R9LS_VERSION', '17.0.0-rc.1');
 define('R9LS_FILE', __FILE__);
 define('R9LS_DIR', plugin_dir_path(__FILE__));
 define('R9LS_URL', plugin_dir_url(__FILE__));

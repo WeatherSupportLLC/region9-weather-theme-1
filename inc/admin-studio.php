@@ -1,16 +1,27 @@
 <?php if(!defined('ABSPATH'))exit;
 add_action('admin_menu',function(){
+ if(function_exists('r9ls_theme_rc1_active') && r9ls_theme_rc1_active()){
+  remove_menu_page('r9-studio');
+  remove_submenu_page('r9-studio','r9-studio-setup');
+  remove_submenu_page('r9-studio','r9-studio-health');
+  remove_submenu_page('r9-studio','r9-studio-backup');
+  add_submenu_page('r9ls','Theme Site Setup','Theme Site Setup','manage_options','r9-studio-setup','r9_studio_setup_page');
+  add_submenu_page('r9ls','Theme System Health','Theme System Health','manage_options','r9-studio-health','r9_studio_health_page');
+  add_submenu_page('r9ls','Theme Backup & Restore','Theme Backup & Restore','manage_options','r9-studio-backup','r9_studio_backup_page');
+  add_submenu_page('r9ls','Theme Live Controls','Theme Live Controls','manage_options','customize.php?autofocus[section]=r9_studio');
+  return;
+ }
  add_menu_page('Region 9 Studio','Region 9 Studio','manage_options','r9-studio','r9_studio_admin','dashicons-cloud','3');
  add_submenu_page('r9-studio','Site Setup','Site Setup','manage_options','r9-studio-setup','r9_studio_setup_page');
  add_submenu_page('r9-studio','System Health','System Health','manage_options','r9-studio-health','r9_studio_health_page');
  add_submenu_page('r9-studio','Backup & Restore','Backup & Restore','manage_options','r9-studio-backup','r9_studio_backup_page');
  add_submenu_page('r9-studio','Live Controls','Live Controls','manage_options','customize.php?autofocus[section]=r9_studio');
-});
+},99);
 add_action('admin_post_r9_build_site','r9_build_site');
 add_action('admin_post_r9_export_settings','r9_export_settings');
 add_action('admin_post_r9_import_settings','r9_import_settings');
-function r9_studio_admin(){ if(!current_user_can('manage_options'))return; ?>
-<div class="wrap"><h1>Region 9 Weather Studio 4.0</h1><p>Production release with Emergency Mode, system health monitoring, observation-age warnings, accessibility controls, social sharing, live alerts, clickable city forecasts, and settings backup/restore.</p>
+function r9_studio_admin(){ if(!current_user_can('manage_options'))return; if(function_exists('r9ls_theme_rc1_active')&&r9ls_theme_rc1_active()){ wp_safe_redirect(admin_url('admin.php?page=r9ls')); exit; } ?>
+<div class="wrap"><h1>Region 9 Weather Studio 4.0</h1><p>Legacy theme controls shown only when Region 9 Live Studio RC1 is inactive. Production release with Emergency Mode, system health monitoring, observation-age warnings, accessibility controls, social sharing, live alerts, clickable city forecasts, and settings backup/restore.</p>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:1200px">
 <?php foreach(array(
  'Live Studio Controls'=>array('Risk, Latest Weather Update, Emergency Mode, live video, impacts, graphics, social links, and accessibility.','customize.php?autofocus[section]=r9_studio','button-primary'),
