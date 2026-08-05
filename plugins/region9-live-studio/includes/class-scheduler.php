@@ -52,7 +52,7 @@ class R9LS_Scheduler {
             'timing_tolerance_minutes' => 60,
             'automatic_publishing' => 0,
             'national_guidance_timeout' => 12,
-            'national_guidance_user_agent' => 'Region9LiveStudio/17 Alpha5 (WeatherSupportLLC; WordPress wp_remote_get)',
+            'national_guidance_user_agent' => 'Region9LiveStudio/17 Alpha7 (WeatherSupportLLC; WordPress wp_remote_get)',
         ));
         update_option(self::SETTINGS, $settings, false);
     }
