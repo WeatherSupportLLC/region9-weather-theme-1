@@ -8,6 +8,7 @@ $functions = readf($root . '/functions.php');
 $header = readf($root . '/header.php');
 $page = readf($root . '/page.php');
 $front = readf($root . '/front-page.php');
+$home = readf($root . '/template-parts-studio-home.php');
 $footer = readf($root . '/footer.php');
 $admin = readf($root . '/inc/admin-studio.php');
 $integration = readf($root . '/inc/live-studio-integration.php');
@@ -22,6 +23,8 @@ foreach (array('r9-live-sidebar','r9-forecast-sidebar','r9-alert-sidebar','r9-fo
 foreach (array('daily','about','severe-weather','hazards','temperature-outlook','precipitation-outlook','travel-outdoor','agriculture','anxiety','radar','alerts','storm-timing','threat-breakdown','watches-warnings','special','contact','city-forecast','outage-tracker','partners','clients','production','rural-operations','rural-reports','protection','backup') as $slug) { pass('page inventory preserved ' . $slug, strpos($functions, "'$slug'") !== false); }
 pass('header uses Region 9 logo and primary nav', strpos($header, 'region9-logo-transparent.png') !== false && strpos($header, 'r9-main-nav') !== false && strpos($header, 'r9_studio_menu') !== false);
 pass('homepage template remains theme-driven', strpos($front, 'template-parts-studio-home.php') !== false);
+pass('v17.1 homepage restores primary radar and operations sidebar', strpos($home, 'r9-home-radar-hero') !== false && strpos($home, 'r9-home-sidebar') !== false);
+pass('v17.1 homepage restores outage and sidebar modules', strpos($home, 'r9_home_outage_module') !== false && strpos($functions, 'r9_home_alert_sidebar_module') !== false && strpos($functions, 'r9_home_operations_sidebar_module') !== false);
 pass('page layout preserves content plus forecast sidebar', strpos($page, 'r9-page-grid') !== false && strpos($page, "is_active_sidebar('r9-forecast-sidebar')") !== false);
 pass('legacy forecast discussion layout preserved as fallback', strpos($page, 'Forecast Discussion') !== false && strpos($page, 'r9_media_placeholder') !== false);
 
