@@ -30,6 +30,8 @@ jobs:
         run: php -l functions.php && php -l page.php && php -l template-parts-studio-home.php && php -l inc/live-studio-integration.php
       - name: Run validation suite
         run: php scripts/validate-region9-live-studio.php
+      - name: Theme RC1 admin integration check
+        run: php scripts/validate-theme-rc1-admin-integration.php
       - name: Build plugin ZIP
         run: bash scripts/build-region9-live-studio-zip.sh
       - name: Verify generated release artifacts

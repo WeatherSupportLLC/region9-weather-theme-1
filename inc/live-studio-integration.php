@@ -1,6 +1,12 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
+function r9ls_theme_rc1_active(){
+    if (defined('R9LS_VERSION') && version_compare((string) R9LS_VERSION, '17.0.0-rc.1', '>=')) { return true; }
+    if (class_exists('R9LS_Plugin') && defined('R9LS_VERSION')) { return true; }
+    return function_exists('r9ls_get_public_products') && function_exists('r9ls_public_settings');
+}
+function r9ls_theme_admin_url(){ return r9ls_theme_rc1_active() ? admin_url('admin.php?page=r9ls') : admin_url('admin.php?page=r9-studio'); }
 function r9ls_theme_product_map(){return array(
  'daily'=>array('morning-brief','todays-forecast','seven-day-forecast','headlines'),
  'hazards'=>array('severe-weather-risk','threat-breakdown','storm-timing'),
@@ -11,7 +17,7 @@ function r9ls_theme_product_map(){return array(
  'precipitation-outlook'=>array('todays-forecast','decision-support-brief'),
  'severe-weather'=>array('severe-weather-risk','threat-breakdown','storm-timing'),
 );}
-function r9ls_theme_enabled(){return function_exists('r9ls_get_published_product')||function_exists('r9ls_get_public_products');}
+function r9ls_theme_enabled(){return r9ls_theme_rc1_active()||function_exists('r9ls_get_published_product')||function_exists('r9ls_get_public_products');}
 function r9ls_theme_products(){static $cache=null;if($cache!==null)return $cache;if(!r9ls_theme_enabled())return $cache=array();if(function_exists('r9ls_get_public_products')){$p=r9ls_get_public_products();}else{$all=function_exists('r9ls_get_published_products')?r9ls_get_published_products():array();$p=array();foreach((array)$all as $id=>$x){if(($x['approval_state']??'')==='approved'&&($x['publication_state']??'')==='published')$p[$id]=$x;}}return $cache=is_array($p)?$p:array();}
 function r9ls_theme_product($id){$all=r9ls_theme_products();$id=sanitize_key($id);return $all[$id]??null;}
 function r9ls_theme_is_stale($p){$threshold=12*HOUR_IN_SECONDS;if(function_exists('r9ls_public_settings')){$s=r9ls_public_settings();$threshold=max(HOUR_IN_SECONDS,(int)($s['stale_data_threshold_minutes']??720)*MINUTE_IN_SECONDS);} $ts=strtotime($p['updated_at']??'');return !$ts||(time()-$ts)>$threshold;}
