@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-OUT="$ROOT/build/region9-live-studio-alpha8.zip"
+OUT="$ROOT/build/region9-live-studio-rc1.zip"
 mkdir -p "$ROOT/build"
 (cd "$ROOT/plugins" && zip -qr "$OUT" region9-live-studio)
 unzip -t "$OUT"
+sha256sum "$OUT" | tee "$OUT.sha256"
 echo "$OUT"
