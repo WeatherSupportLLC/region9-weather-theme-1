@@ -35,16 +35,16 @@ function wpautop($value) { return '<p>' . $value . '</p>'; }
 function sanitize_html_class($value) { return sanitize_key($value); }
 function r9_media_placeholder($title = 'Forecast Graphic', $key = '') { return '<div></div>'; }
 function r9_setting($key, $default = '') { return $default; }
-define('HOUR_IN_SECONDS', 3600); define('MINUTE_IN_SECONDS', 60); define('R9LS_VERSION', '17.0.0-rc.1');
+define('HOUR_IN_SECONDS', 3600); define('MINUTE_IN_SECONDS', 60); define('R9LS_VERSION', '17.1.0');
 require dirname(__DIR__) . '/inc/live-studio-integration.php';
 require dirname(__DIR__) . '/inc/admin-studio.php';
 foreach ($GLOBALS['actions']['admin_menu'] as $callback) { $callback(); }
 function assert_true($name, $condition) { if (!$condition) { fwrite(STDERR, "FAIL: $name\n"); exit(1); } echo "PASS: $name\n"; }
-assert_true('RC1 plugin detection', r9ls_theme_rc1_active());
+assert_true('17.1 plugin detection', r9ls_theme_rc1_active());
 assert_true('legacy top-level dashboard not registered', empty($GLOBALS['menus']['r9-studio']));
 assert_true('legacy menu removal attempted', in_array('r9-studio', $GLOBALS['removed'], true));
 $parents = array_column($GLOBALS['submenus'], 'parent_slug');
-assert_true('theme support pages move under RC1 plugin menu', in_array('r9ls', $parents, true) && !in_array('r9-studio', $parents, true));
+assert_true('active plugin exclusively owns support submenus', !in_array('r9ls', $parents, true) && !in_array('r9-studio', $parents, true));
 try { r9_studio_admin(); } catch (Throwable $e) {}
-assert_true('legacy dashboard redirects to RC1 admin', strpos($GLOBALS['redirect'], 'page=r9ls') !== false);
-echo "Theme RC1 admin integration validation complete.\n";
+assert_true('legacy dashboard redirects to Live Studio admin', strpos($GLOBALS['redirect'], 'page=r9ls') !== false);
+echo "Theme 17.1 admin integration validation complete.\n";

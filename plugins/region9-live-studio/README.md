@@ -1,6 +1,6 @@
-# Region 9 Live Studio 17 RC1
+# Region 9 Live Studio 17.1.0
 
-RC1 hardens the automated Region 9 weather operations plugin for staging validation and production release readiness. Automatic publishing remains disabled by default; source refresh, validation, scoring, product generation, and rollback never publish a change without the existing manual approval path.
+17.1.0 release hardens the automated Region 9 weather operations plugin for staging validation and production release readiness. Automatic publishing remains disabled by default; source refresh, validation, scoring, product generation, and rollback never publish a change without the existing manual approval path.
 
 ## Architecture
 
@@ -36,18 +36,18 @@ Activation schedules one `r9ls_validate_weather_operations` cron event. Deactiva
 
 ## Release validation
 
-Run `php scripts/validate-region9-live-studio.php`, PHP lint checks, `scripts/build-region9-live-studio-zip.sh`, and a plugin activation smoke test before release. Complete the RC1 evidence gates in `docs/rc1-production-hardening.md`, including clean install/upgrade validation, 24-48 hour scheduler soak testing, operational scenarios, publication workflow validation, public rendering checks, accessibility and responsive review, security review, compatibility matrix, performance measurements, final ZIP checksums, launch checklist sign-off, and rollback rehearsal.
+Run `php scripts/v17.1-final-certification.php --full`, PHP lint checks, both package builders, and a plugin activation smoke test before deployment. Complete the repository `docs/v17.1-staging-checklist.md`, including clean install/upgrade validation, a 24–48 hour scheduler soak, publication workflow checks, public rendering checks, accessibility review, final ZIP checksums, and rollback rehearsal.
 
 ## Known limitations
 
-* RC1 requires launch evidence that bundled county boundaries have been reviewed against the selected official U.S. Census Bureau TIGER/Line vintage, with checksum and reviewer recorded in `docs/rc1-launch-checklist.md`.
+* 17.1.0 requires launch evidence that bundled county boundaries have been reviewed against the selected official U.S. Census Bureau TIGER/Line vintage, with checksum and reviewer retained in staging evidence.
 * The official WPC QPF endpoint is consumed as machine-readable GeoJSON; if NOAA changes the schema, the parser will mark the source degraded rather than invent values.
 * Natural-language timing normalization remains conservative; timestamps are carried through from official machine-readable metadata when present.
 
-## RC1 Forecast Production Engine
+## 17.1.0 Forecast Production Engine
 
 See `docs-alpha7.md` for product schema, timing normalization, county aggregation, REST endpoints, theme helpers, security behavior, known limitations, and staging installation instructions.
 
-## RC1 production hardening
+## 17.1.0 production hardening
 
-The complete RC1 staging and launch checklist lives in `docs/rc1-production-hardening.md`. Release evidence templates are available in `docs/rc1-release-notes.md`, `docs/rc1-technical-validation.md`, `docs/rc1-launch-checklist.md`, and `docs/rc1-rollback-procedure.md`.
+The complete staging, deployment, and rollback procedures are distributed with the repository's 17.1 release documentation and final certification reports.
