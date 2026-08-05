@@ -98,6 +98,10 @@ class R9LS_Scheduler {
             $previous = get_option(self::CACHE, array());
             $changes = $this->changes->detect($previous, $products);
             update_option(self::CACHE, $products, false);
+            if (class_exists('R9LS_Product_Generator')) {
+                $generator = new R9LS_Product_Generator($this->rules, $this->changes, $this->audit);
+                $generator->refresh_workspace_from_decision($products, $changes, $mode, 'validation-' . gmdate('YmdHis'));
+            }
             $duration = round(microtime(true) - $started, 3);
             $last = array('time' => current_time('mysql'), 'mode' => sanitize_key($mode), 'duration' => $duration, 'changes' => count($changes));
             update_option(self::LAST, $last, false);

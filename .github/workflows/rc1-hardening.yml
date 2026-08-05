@@ -23,6 +23,12 @@ jobs:
         run: php scripts/rc1-validation-suite.php
       - name: Theme RC1 admin integration check
         run: php scripts/validate-theme-rc1-admin-integration.php
+      - name: RC1 public surface preservation check
+        run: php scripts/validate-rc1-public-surface.php
+      - name: v15/v17 parity inventory guard
+        run: php scripts/validate-v15-parity.php
+      - name: RC1 final certification
+        run: php scripts/rc1-final-certification.php --full
       - name: Short scheduler soak
         run: php scripts/rc1-scheduler-soak.php 10 2
       - name: Build plugin ZIP and manifest
@@ -64,7 +70,7 @@ jobs:
           fi
       - uses: actions/upload-artifact@v4
         with:
-          name: region9-live-studio-rc1-artifacts
+          name: region9-live-studio-rc1-final-artifacts
           path: |
             build/region9-live-studio-*.zip
             build/region9-weather-theme-*.zip
@@ -72,4 +78,9 @@ jobs:
             build/region9-live-studio-*-manifest.json
             build/rc1-test-report.json
             build/rc1-soak-report.json
+            build/rc1-public-surface-report.json
+            build/v15-parity-report.json
+            build/rc1-final-certification.json
+            build/rc1-final-certification.txt
+            build/rc1-final-certification.md
           if-no-files-found: error

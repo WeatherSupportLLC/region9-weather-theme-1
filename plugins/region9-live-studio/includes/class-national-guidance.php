@@ -81,8 +81,9 @@ class R9LS_National_Guidance {
         for ($i=0; $i<3; $i++) {
             $res = wp_remote_get($url, array('timeout' => (int)$this->settings['timeout'], 'user-agent' => $this->settings['user_agent']));
             if (!is_wp_error($res)) {
-                $code = (int) wp_remote_retrieve_response_code($res); $body = wp_remote_retrieve_body($res);
-                if ($code >= 200 && $code < 300 && is_string($body) && $body !== '') {
+                $code = (int) wp_remote_retrieve_response_code($res); $body = wp_remote_retrieve_body($res); $ctype = function_exists('wp_remote_retrieve_header') ? strtolower((string) wp_remote_retrieve_header($res, 'content-type')) : strtolower((string)($res['headers']['content-type'] ?? $res['headers']['Content-Type'] ?? ''));
+                if ($code >= 200 && $code < 300 && $ctype && strpos($ctype, 'json') === false && strpos($ctype, 'geo') === false && strpos($ctype, 'text/plain') === false) { $last_error = 'unexpected content-type ' . $ctype; }
+                elseif ($code >= 200 && $code < 300 && is_string($body) && $body !== '') {
                     $json = json_decode($body, true);
                     if (is_array($json)) { $out = array('status' => 'healthy', 'source_health' => 'healthy', 'latency' => round(microtime(true)-$started,3), 'last_success_time' => current_time('mysql'), 'payload' => $json, 'cache' => 'miss'); set_transient(self::CACHE_PREFIX.$key, $out, (int)$this->settings['cache_ttl']); update_option(self::CACHE_PREFIX.$key.'_stale', array_merge($out, array('stored_at'=>time())), false); return $out; }
                     $last_error = 'invalid json';
@@ -104,8 +105,44 @@ class R9LS_National_Guidance {
         return array('status'=>'healthy','source_health'=>'healthy','hazards'=>$hazards,'issue_time'=>$issue,'valid_from'=>$valid_from,'valid_to'=>$valid_to);
     }
 
-    private function parse_qpf($json) { if (($json['type'] ?? '') !== 'FeatureCollection') { return array('status'=>'malformed','source_health'=>'malformed_geometry','county_precipitation'=>array()); } $vals = array_fill_keys($this->gis->county_names(), null); foreach ((array)$json['features'] as $feature) { $geom = $feature['geometry'] ?? null; if (!$this->valid_geometry($geom)) { continue; } $p=(array)($feature['properties']??array()); $v=$p['qpf_in'] ?? $p['QPF_IN'] ?? (isset($p['qpf_mm']) ? ((float)$p['qpf_mm']/25.4) : ($p['amount'] ?? $p['VALUE'] ?? $p['qpf'] ?? null)); if (is_string($v) && preg_match('/([0-9.]+)/', $v, $m)) { $v = $m[1]; } if ($v===null || !is_numeric($v)) { continue; } $src=array('status'=>'healthy','hazards'=>array(array('risk'=>1,'geometry'=>$geom))); $hits=$this->gis->intersect_source($src); foreach ($hits['affected_counties'] as $c) { $vals[$c]=max((float)($vals[$c] ?? 0), round((float)$v,2)); } } $valid = $this->time_prop($json, array('valid','valid_time','valid_to','end')); return array('status'=>'healthy','source_health'=>'healthy','county_precipitation'=>$vals,'unit'=>'in','source_valid_time'=>$valid,'source_age'=>max(0, time()-strtotime($valid)),'confidence'=>in_array(null,$vals,true)?70:90); }
-    private function parse_nws_alerts($json) { if (($json['type'] ?? '') !== 'FeatureCollection') { return array('status'=>'malformed','source_health'=>'malformed_payload','hazards'=>array()); } $hazards=array(); foreach ((array)($json['features'] ?? array()) as $feature) { $props=(array)($feature['properties'] ?? array()); $geom=$feature['geometry'] ?? null; $event=(string)($props['event'] ?? 'Weather Alert'); $severity=(string)($props['severity'] ?? ''); $risk=$this->alert_risk($event, $severity); $counties=$this->alert_counties($props); if ($geom && $this->valid_geometry($geom)) { $hits=$this->gis->intersect_source(array('status'=>'healthy','hazards'=>array(array('risk'=>$risk,'geometry'=>$geom)))); $counties=array_values(array_unique(array_merge($counties, $hits['affected_counties']))); } if (!$counties) { continue; } $hazards[]=array('risk'=>$risk,'event'=>$event,'headline'=>(string)($props['headline'] ?? $event),'severity'=>$severity,'affected_counties'=>$counties,'timing'=>$this->period((string)($props['effective'] ?? ''),(string)($props['ends'] ?? $props['expires'] ?? '')),'geometry'=>$geom); } return array('status'=>'healthy','source_health'=>'healthy','hazards'=>$hazards,'affected_counties'=>array_values(array_unique(array_merge(...array_map(function($h){ return $h['affected_counties']; }, $hazards ?: array(array('affected_counties'=>array()))))))); }
+    private function parse_qpf($json) {
+        if (($json['type'] ?? '') !== 'FeatureCollection') { return array('status'=>'malformed','source_health'=>'malformed_geometry','county_precipitation'=>array(),'error'=>'QPF was not GeoJSON'); }
+        $vals = array_fill_keys($this->gis->county_names(), null); $valid_features = 0; $ambiguous = 0;
+        foreach ((array)$json['features'] as $feature) {
+            $geom = $feature['geometry'] ?? null; if (!$this->valid_geometry($geom)) { continue; }
+            $p=(array)($feature['properties']??array()); $unit = strtolower((string)($p['unit'] ?? $p['units'] ?? $p['UNIT'] ?? ''));
+            $v = null;
+            if (isset($p['qpf_in']) || isset($p['QPF_IN']) || isset($p['inches'])) { $v = $p['qpf_in'] ?? $p['QPF_IN'] ?? $p['inches']; $unit = 'in'; }
+            elseif (isset($p['qpf_mm']) || isset($p['QPF_MM']) || isset($p['millimeters'])) { $v = $p['qpf_mm'] ?? $p['QPF_MM'] ?? $p['millimeters']; $unit = 'mm'; }
+            elseif (isset($p['VALUE'])) { $v = $p['VALUE']; $unit = 'in'; }
+            elseif (isset($p['amount']) || isset($p['qpf'])) { $v = $p['amount'] ?? $p['qpf']; }
+            if (is_string($v) && preg_match('/([0-9.]+)/', $v, $m)) { $v = $m[1]; }
+            if ($v===null || !is_numeric($v)) { continue; }
+            if ($unit && in_array($unit, array('mm','millimeter','millimeters'), true)) { $v = (float)$v / 25.4; }
+            elseif ($unit && in_array($unit, array('in','inch','inches'), true)) { $v = (float)$v; }
+            elseif (isset($p['amount']) || isset($p['qpf'])) { $ambiguous++; continue; }
+            $valid_features++;
+            $src=array('status'=>'healthy','hazards'=>array(array('risk'=>1,'geometry'=>$geom))); $hits=$this->gis->intersect_source($src);
+            foreach ($hits['affected_counties'] as $c) { $vals[$c]=max((float)($vals[$c] ?? 0), round((float)$v,2)); }
+        }
+        if ($ambiguous && !$valid_features) { return array('status'=>'malformed','source_health'=>'schema_change','county_precipitation'=>array(),'error'=>'QPF units were ambiguous'); }
+        $valid = $this->time_prop($json, array('valid','valid_time','valid_to','end'));
+        return array('status'=>'healthy','source_health'=>'healthy','county_precipitation'=>$vals,'unit'=>'in','source_valid_time'=>$valid,'source_age'=>max(0, time()-strtotime($valid)),'confidence'=>in_array(null,$vals,true)?70:90,'healthy_zero_qpf'=>!array_filter($vals));
+    }
+    private function parse_nws_alerts($json) {
+        if (($json['type'] ?? '') !== 'FeatureCollection') { return array('status'=>'malformed','source_health'=>'malformed_payload','hazards'=>array()); }
+        $hazards=array(); $seen=array(); $now=time();
+        foreach ((array)($json['features'] ?? array()) as $feature) {
+            $props=(array)($feature['properties'] ?? array()); $geom=$feature['geometry'] ?? null; $event=(string)($props['event'] ?? 'Weather Alert'); $severity=(string)($props['severity'] ?? ''); $risk=$this->alert_risk($event, $severity); $counties=$this->alert_counties($props);
+            if ($geom && $this->valid_geometry($geom)) { $hits=$this->gis->intersect_source(array('status'=>'healthy','hazards'=>array(array('risk'=>$risk,'geometry'=>$geom)))); $counties=array_values(array_unique(array_merge($counties, $hits['affected_counties']))); }
+            if (!$counties) { continue; }
+            $id = sanitize_text_field((string)($props['id'] ?? $props['@id'] ?? $feature['id'] ?? md5($event . serialize($counties)))); if (isset($seen[$id])) { continue; } $seen[$id]=true;
+            $ends = (string)($props['ends'] ?? $props['expires'] ?? ''); $status = (stripos($event, 'cancellation') !== false || stripos((string)($props['messageType'] ?? ''), 'cancel') !== false) ? 'cancelled' : 'active';
+            if ($ends && strtotime($ends) && strtotime($ends) < $now) { $status = 'expired'; }
+            $hazards[]=array('id'=>$id,'risk'=>$risk,'event'=>$event,'headline'=>(string)($props['headline'] ?? $event),'description'=>(function_exists('wp_strip_all_tags') ? wp_strip_all_tags((string)($props['description'] ?? '')) : strip_tags((string)($props['description'] ?? ''))),'instruction'=>(function_exists('wp_strip_all_tags') ? wp_strip_all_tags((string)($props['instruction'] ?? '')) : strip_tags((string)($props['instruction'] ?? ''))),'severity'=>$severity,'urgency'=>(string)($props['urgency'] ?? ''),'certainty'=>(string)($props['certainty'] ?? ''),'office'=>(string)($props['senderName'] ?? $props['sender'] ?? 'National Weather Service'),'updated'=>(string)($props['sent'] ?? $props['updated'] ?? ''),'effective'=>(string)($props['effective'] ?? ''),'onset'=>(string)($props['onset'] ?? ''),'ends'=>$ends,'status'=>$status,'affected_counties'=>$counties,'timing'=>$this->period((string)($props['effective'] ?? ''),$ends),'geometry'=>$geom ? array('type'=>$geom['type']) : null);
+        }
+        return array('status'=>'healthy','source_health'=>'healthy','hazards'=>$hazards,'alert_count'=>count($hazards),'healthy_zero_alerts'=>count($hazards)===0,'affected_counties'=>array_values(array_unique(array_merge(...array_map(function($h){ return $h['affected_counties']; }, $hazards ?: array(array('affected_counties'=>array())))))));
+    }
     private function parse_nws_grid_hourly($grid, $hourly) { $forecast=(array)($grid['properties']['periods'] ?? array()); $hours=(array)($hourly['properties']['periods'] ?? array()); if (!$forecast && !$hours) { return array('status'=>'malformed','source_health'=>'malformed_payload','forecast_periods'=>array(),'hourly_periods'=>array()); } return array('status'=>'healthy','source_health'=>'healthy','forecast_periods'=>array_slice($forecast,0,14),'hourly_periods'=>array_slice($hours,0,48),'summary'=>$forecast[0]['detailedForecast'] ?? $forecast[0]['shortForecast'] ?? $hours[0]['shortForecast'] ?? 'NWS forecast available'); }
     private function alert_risk($event, $severity) { $text=strtolower($event.' '.$severity); if (strpos($text,'warning')!==false || strpos($text,'extreme')!==false) return 5; if (strpos($text,'watch')!==false || strpos($text,'severe')!==false || strpos($text,'flood')!==false) return 4; if (strpos($text,'advisory')!==false || strpos($text,'moderate')!==false) return 3; if (strpos($text,'statement')!==false || strpos($text,'minor')!==false) return 2; return 1; }
     private function alert_counties($props) { $out=array(); $text=implode(' ', array_merge((array)($props['areaDesc'] ?? ''), (array)($props['geocode']['SAME'] ?? array()), (array)($props['geocode']['UGC'] ?? array()))); foreach ($this->gis->county_names() as $county) { if (stripos($text, $county) !== false) { $out[]=$county; } } return $out; }
@@ -113,5 +150,5 @@ class R9LS_National_Guidance {
     private function fresh($issue,$from,$to){ foreach(array($issue,$from,$to) as $t){ if(!$t || strtotime($t)===false) return false; } return strtotime($issue) > time() - (int)$this->settings['max_age'] && strtotime($to) > time() - 3600; }
     private function period($a,$b){ return trim($a.' to '.$b); }
     private function valid_geometry($g){ return is_array($g) && in_array($g['type'] ?? '', array('Polygon','MultiPolygon'), true) && !empty($g['coordinates']); }
-    private function finish($key,$data){ unset($data['payload']); $old = get_option(self::HEALTH, array()); $prev = $old[$key]['source_health'] ?? 'unknown'; $now = $data['source_health'] ?? $data['status']; if ($prev !== 'unknown' && $prev !== $now) { $this->audit->write($now === 'healthy' ? 'info' : 'warning', 'Source health changed.', array('source'=>$key,'from'=>$prev,'to'=>$now)); } $old[$key] = array_merge($data, array('updated'=>current_time('mysql'))); update_option(self::HEALTH, $old, false); return $data; }
+    private function finish($key,$data){ unset($data['payload']); if ($key === 'nws_alerts') { update_option('r9ls_canonical_alert_state', array('status'=>$data['status'] ?? 'unknown','source_health'=>$data['source_health'] ?? 'unknown','alerts'=>$data['hazards'] ?? array(),'updated'=>current_time('mysql'),'error'=>$data['error'] ?? ''), false); } $old = get_option(self::HEALTH, array()); $prev = $old[$key]['source_health'] ?? 'unknown'; $now = $data['source_health'] ?? $data['status']; if ($prev !== 'unknown' && $prev !== $now) { $this->audit->write($now === 'healthy' ? 'info' : 'warning', 'Source health changed.', array('source'=>$key,'from'=>$prev,'to'=>$now)); } $old[$key] = array_merge($data, array('updated'=>current_time('mysql'))); update_option(self::HEALTH, $old, false); return $data; }
 }

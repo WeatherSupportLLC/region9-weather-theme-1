@@ -32,6 +32,10 @@ jobs:
         run: php scripts/validate-region9-live-studio.php
       - name: Theme RC1 admin integration check
         run: php scripts/validate-theme-rc1-admin-integration.php
+      - name: RC1 public surface preservation check
+        run: php scripts/validate-rc1-public-surface.php
+      - name: v15/v17 parity inventory guard
+        run: php scripts/validate-v15-parity.php
       - name: Build plugin ZIP
         run: bash scripts/build-region9-live-studio-zip.sh
       - name: Verify generated release artifacts
@@ -74,4 +78,6 @@ jobs:
             build/region9-live-studio-*.zip
             build/SHA256SUMS.txt
             build/region9-live-studio-*-manifest.json
+            build/rc1-public-surface-report.json
+            build/v15-parity-report.json
           if-no-files-found: error
