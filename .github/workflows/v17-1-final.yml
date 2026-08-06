@@ -1,0 +1,105 @@
+name: Region 9 Live Studio 17.1 Final
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '*.php'
+      - 'style.css'
+      - 'assets/**'
+      - 'inc/**'
+      - 'plugins/region9-live-studio/**'
+      - 'scripts/**'
+      - 'docs/v17.1-**'
+      - '.github/workflows/v17-1-final.yml'
+  workflow_dispatch:
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: Plugin PHP lint
+        run: find plugins/region9-live-studio -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Theme PHP lint
+        run: find . -path './plugins' -prune -o -path './scripts' -prune -o -path './build' -prune -o -path './.git' -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Existing core validation
+        run: |
+          php scripts/validate-region9-live-studio.php
+          php scripts/rc1-validation-suite.php
+          php scripts/validate-theme-rc1-admin-integration.php
+      - name: Homepage validation
+        run: php scripts/validate-v17.1-homepage.php
+      - name: Production pipeline validation
+        run: php scripts/validate-v17.1-production-pipeline.php
+      - name: Admin validation
+        run: php scripts/validate-v17.1-admin.php
+      - name: Public surface validation
+        run: php scripts/validate-rc1-public-surface.php
+      - name: Parity validation
+        run: php scripts/validate-v15-parity.php
+      - name: Final full certification
+        run: php scripts/v17.1-final-certification.php --full
+      - name: Scheduler short soak
+        run: php scripts/rc1-scheduler-soak.php 10 2
+      - name: Build plugin ZIP
+        run: bash scripts/build-region9-live-studio-zip.sh
+      - name: Build theme ZIP
+        run: bash scripts/build-region9-weather-theme-zip.sh
+      - name: Verify ZIP integrity
+        run: |
+          unzip -t build/region9-live-studio-17.1.0.zip
+          unzip -t build/region9-weather-theme-17.1.0.zip
+      - name: Validate manifests
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          root = pathlib.Path('build')
+          for stem in ('region9-live-studio-17.1.0', 'region9-weather-theme-17.1.0'):
+              artifact = root / f'{stem}.zip'
+              manifest = json.loads((root / f'{stem}-manifest.json').read_text())
+              assert manifest['version'] == '17.1.0'
+              assert manifest['artifact_filename'] == artifact.name
+              assert manifest['byte_size'] == artifact.stat().st_size
+              assert manifest['sha256'] == hashlib.sha256(artifact.read_bytes()).hexdigest()
+          PY
+      - name: Verify checksums
+        run: (cd build && sha256sum -c SHA256SUMS.txt)
+      - name: Assemble required release evidence
+        run: |
+          cp docs/v17.1-release-notes.md build/
+          cp docs/v17.1-staging-checklist.md build/
+          cp docs/v17.1-production-deployment.md build/
+          cp docs/v17.1-rollback.md build/
+          expected=(
+            region9-live-studio-17.1.0.zip region9-weather-theme-17.1.0.zip SHA256SUMS.txt
+            region9-live-studio-17.1.0-manifest.json region9-weather-theme-17.1.0-manifest.json
+            v17.1-final-certification.json v17.1-final-certification.txt v17.1-final-certification.md
+            v17.1-scheduler-soak-report.json v17.1-homepage-report.json v17.1-admin-report.json
+            v17.1-production-pipeline-report.json rc1-public-surface-report.json v15-parity-report.json
+            v17.1-release-notes.md v17.1-staging-checklist.md v17.1-production-deployment.md v17.1-rollback.md
+          )
+          for file in "${expected[@]}"; do test -s "build/$file" || { echo "Missing build/$file" >&2; exit 1; }; done
+      - name: Upload final artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: region9-live-studio-17.1-final-artifacts
+          path: |
+            build/region9-live-studio-17.1.0.zip
+            build/region9-weather-theme-17.1.0.zip
+            build/SHA256SUMS.txt
+            build/*-17.1.0-manifest.json
+            build/v17.1-final-certification.*
+            build/v17.1-*-report.json
+            build/rc1-public-surface-report.json
+            build/v15-parity-report.json
+            build/v17.1-release-notes.md
+            build/v17.1-staging-checklist.md
+            build/v17.1-production-deployment.md
+            build/v17.1-rollback.md
+          if-no-files-found: error
