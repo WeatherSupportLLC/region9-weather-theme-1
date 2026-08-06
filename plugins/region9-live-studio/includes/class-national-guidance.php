@@ -16,7 +16,7 @@ class R9LS_National_Guidance {
         'nws_grid_url' => '',
         'nws_hourly_url' => '',
         'timeout' => 12,
-        'user_agent' => 'Region9LiveStudio/17 RC1 (WeatherSupportLLC; WordPress wp_remote_get)',
+        'user_agent' => 'Region9LiveStudio/17.1.0 (WeatherSupportLLC; WordPress wp_remote_get)',
         'cache_ttl' => 1800,
         'stale_ttl' => 21600,
         'max_age' => 86400,
@@ -150,5 +150,5 @@ class R9LS_National_Guidance {
     private function fresh($issue,$from,$to){ foreach(array($issue,$from,$to) as $t){ if(!$t || strtotime($t)===false) return false; } return strtotime($issue) > time() - (int)$this->settings['max_age'] && strtotime($to) > time() - 3600; }
     private function period($a,$b){ return trim($a.' to '.$b); }
     private function valid_geometry($g){ return is_array($g) && in_array($g['type'] ?? '', array('Polygon','MultiPolygon'), true) && !empty($g['coordinates']); }
-    private function finish($key,$data){ unset($data['payload']); if ($key === 'nws_alerts') { update_option('r9ls_canonical_alert_state', array('status'=>$data['status'] ?? 'unknown','source_health'=>$data['source_health'] ?? 'unknown','alerts'=>$data['hazards'] ?? array(),'updated'=>current_time('mysql'),'error'=>$data['error'] ?? ''), false); } $old = get_option(self::HEALTH, array()); $prev = $old[$key]['source_health'] ?? 'unknown'; $now = $data['source_health'] ?? $data['status']; if ($prev !== 'unknown' && $prev !== $now) { $this->audit->write($now === 'healthy' ? 'info' : 'warning', 'Source health changed.', array('source'=>$key,'from'=>$prev,'to'=>$now)); } $old[$key] = array_merge($data, array('updated'=>current_time('mysql'))); update_option(self::HEALTH, $old, false); return $data; }
+    private function finish($key,$data){ unset($data['payload']); if ($key === 'nws_alerts') { update_option('r9ls_canonical_alert_state', array('status'=>$data['status'] ?? 'unknown','source_health'=>$data['source_health'] ?? 'unknown','alerts'=>$data['hazards'] ?? array(),'updated'=>current_time('mysql'),'error'=>$data['error'] ?? ''), false); } $old = get_option(self::HEALTH, array()); $prior=$old[$key]??array(); $prev = $prior['source_health'] ?? 'unknown'; $now = $data['source_health'] ?? $data['status']; $healthy=$now==='healthy'; $telemetry=array('updated'=>current_time('mysql'),'last_success_time'=>$healthy?($data['last_success_time']??current_time('mysql')):($prior['last_success_time']??''),'last_failure_time'=>$healthy?($prior['last_failure_time']??''):current_time('mysql'),'error_count'=>$healthy?0:((int)($prior['error_count']??0)+1),'retry_status'=>$healthy?'not_required':'scheduled_validation_retry'); if ($prev !== 'unknown' && $prev !== $now) { $this->audit->write($now === 'healthy' ? 'info' : 'warning', 'Source health changed.', array('source'=>$key,'from'=>$prev,'to'=>$now)); } $old[$key] = array_merge($prior,$data,$telemetry); update_option(self::HEALTH, $old, false); return $data; }
 }

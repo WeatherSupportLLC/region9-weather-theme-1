@@ -1,6 +1,6 @@
 <?php
 if (!defined('ABSPATH')) exit;
-define('R9_STUDIO_VERSION','4.0.0');
+define('R9_STUDIO_VERSION','17.1.0');
 require_once get_stylesheet_directory().'/inc/customizer.php';
 require_once get_stylesheet_directory().'/inc/admin-studio.php';
 require_once get_stylesheet_directory().'/inc/widgets.php';
@@ -167,6 +167,76 @@ add_shortcode('region9_studio_home',function(){ob_start();include get_stylesheet
 add_shortcode('region9_outage_tracker',function(){return r9_professional_empty_state('Outage Tracker','No reported outages affecting Region 9.','Provider and restoration details will appear here when an approved outage update is published.','Region 9 outage map placeholder');});
 add_shortcode('region9_alert_center',function(){return '<section class="r9-alert-center-intro r9-operational-hero"><span class="r9-eyebrow">REGION 9 LIVE SAFETY</span><h2>Active Alert Center</h2><p>Official National Weather Service alerts affecting Region 9 and monitored surrounding counties appear here automatically. Select an alert for localized impacts, safety actions, radar, and the full official bulletin.</p><div class="r9-status-row"><span class="r9-status-pill">Updated '.esc_html(r9_updated_label()).'</span><span class="r9-status-pill '.esc_attr(r9_risk_class()).'">'.esc_html(r9_risk_label()).' risk</span><span class="r9-status-pill">Source: NWS Alerts</span></div></section><div class="r9-operational-layout"><div id="r9-alert-center" class="r9-alert-center"><div class="r9-alert-card clear"><span class="r9-alert-card-state">CURRENT STATUS</span><h3>No active weather alerts.</h3><p>Region 9 Weather is monitoring official National Weather Service alerts. If warnings, watches, or advisories are issued, county-specific cards and safety actions will appear here.</p></div></div><aside class="r9-panel r9-alert-map"><div class="r9-panel-head"><h3>Region 9 Alert Map</h3></div>'.r9_media_placeholder('Region 9 Alert Map').'<div class="r9-discussion"><p>Alert polygons, affected counties, expiration times, and protective actions appear here after an official alert is received and approved for public display.</p></div></aside></div>';});
 
+function r9_home_product($id){
+  return function_exists('r9ls_theme_product') ? r9ls_theme_product($id) : null;
+}
+
+function r9_home_product_field($id,$field,$fallback=''){
+  $p=r9_home_product($id);
+  return $p && isset($p[$field]) && $p[$field]!=='' ? $p[$field] : $fallback;
+}
+
+function r9_home_forecast_module($id,$label=''){
+  $p=r9_home_product($id);
+  $title=$p['title']??($label?:ucwords(str_replace('-',' ',$id)));
+  $summary=$p['summary']??r9ls_theme_fallback_language();
+  $discussion=$p['discussion']??'The latest approved forecast discussion will appear here when Region 9 Live Studio publishes this product.';
+  $risk=$p['risk']??array('label'=>r9_risk_label());
+  $confidence=isset($p['confidence'])?(int)$p['confidence']:0;
+  $timing=is_array($p['timing']??null)?(($p['timing']['label']??'')?:($p['timing']['local']??'')):($p['timing']??'Timing will update with approved forecast products.');
+  $counties=array_filter((array)($p['affected_counties']??array()));
+  $updated=$p && !empty($p['updated_at']) && strtotime($p['updated_at']) ? wp_date('M j, Y g:i A T',strtotime($p['updated_at'])) : r9_updated_label();
+  $graphic=!empty($p['graphic_url'])?'<img class="r9-image" src="'.esc_url($p['graphic_url']).'" alt="'.esc_attr($title).' graphic">':r9_media_placeholder($title.' Forecast Graphic');
+  return '<article class="r9-panel r9-home-forecast-module" data-home-forecast="'.esc_attr($id).'"><div class="r9-panel-head"><div><span class="r9-eyebrow">REGION 9 FORECAST</span><h2>'.esc_html($title).'</h2></div>'.r9ls_theme_risk_badge($risk).'</div><div class="r9-forecast-media-discussion"><div class="r9-forecast-graphic">'.$graphic.'</div><div class="r9-forecast-discussion-panel"><h3>Forecast Discussion</h3><p>'.esc_html($summary).'</p><div class="r9-discussion">'.wp_kses_post(wpautop($discussion)).'</div><dl class="r9-forecast-meta"><div><dt>Risk</dt><dd>'.esc_html(is_array($risk)?($risk['label']??r9_risk_label()):$risk).'</dd></div><div><dt>Confidence</dt><dd>'.esc_html((string)$confidence).'%</dd></div><div><dt>Timing</dt><dd>'.esc_html($timing?:'Updated with approved forecast products').'</dd></div><div><dt>Affected counties</dt><dd>'.esc_html($counties?implode(', ',$counties):'Region 9 area as applicable').'</dd></div><div><dt>Latest update</dt><dd>'.esc_html($updated).'</dd></div></dl></div></div></article>';
+}
+
+function r9_home_alert_sidebar_module(){
+  $state=function_exists('r9ls_get_canonical_alert_state')?r9ls_get_canonical_alert_state():array('status'=>'unavailable','source_health'=>'unavailable','alerts'=>array(),'updated'=>'');
+  $alerts=array_slice((array)($state['alerts']??array()),0,4);
+  $status=sanitize_html_class($state['status']??'unknown');
+  $updated=!empty($state['updated'])&&strtotime($state['updated'])?wp_date('M j, g:i A T',strtotime($state['updated'])):r9_updated_label();
+  $html='<section class="r9-panel r9-sidebar-module r9-home-alert-sidebar" data-r9-sidebar-module="alert-center"><div class="r9-panel-head"><div><span class="r9-eyebrow">ALERT CENTER</span><h2>Active Alerts</h2></div><span class="r9-status-pill r9-alert-state-'.esc_attr($status).'">'.esc_html(ucwords(str_replace('_',' ',$state['status']??'unknown'))).'</span></div>';
+  if($alerts){
+    $html.='<ul class="r9-sidebar-alert-list">';
+    foreach($alerts as $a){
+      $event=$a['event']??'Weather Alert';$severity=$a['severity']??'Unknown';$counties=(array)($a['affected_counties']??($a['counties']??array()));$ends=$a['ends']??'';
+      $html.='<li><strong>'.esc_html($event).'</strong><span>'.esc_html($severity).($counties?' · '.esc_html(implode(', ',$counties)):'').'</span>'.($ends?'<small>Expires '.esc_html($ends).'</small>':'').(!empty($a['instruction'])?'<p>'.esc_html(wp_trim_words(wp_strip_all_tags($a['instruction']),24)).'</p>':'').'</li>';
+    }
+    $html.='</ul>';
+  }else{
+    $html.='<div class="r9-sidebar-clear"><strong>No active Region 9 alerts.</strong><p>Watches, warnings, advisories, affected counties, expiration times, and safety instructions appear here from the approved normalized alert state.</p></div>';
+  }
+  return $html.'<p class="r9-sidebar-updated">Updated '.esc_html($updated).' · Source health: '.esc_html($state['source_health']??'unknown').'</p><a class="r9-sidebar-action" href="'.esc_url(home_url('/alerts/')).'">Open full Alert Center →</a></section>';
+}
+
+function r9_home_operations_sidebar_module(){
+  $links=array('Forecast'=>'/daily/','Hazards'=>'/hazards/','Radar'=>'/radar/','Alert Center'=>'/alerts/','Travel'=>'/travel-outdoor/','Agriculture'=>'/agriculture/','Emergency Information'=>'/protection/','Rural Operations'=>'/rural-operations/');
+  $html='<section class="r9-panel-dark r9-sidebar-module r9-home-weather-operations" data-r9-sidebar-module="weather-operations"><span class="r9-eyebrow">WEATHER OPERATIONS</span><h2>Operational Navigation</h2><p>Fast access to the public Region 9 monitoring tools used during active weather.</p><nav class="r9-sidebar-link-grid" aria-label="Weather Operations links">';
+  foreach($links as $label=>$path){$html.='<a href="'.esc_url(home_url($path)).'"><strong>'.esc_html($label).'</strong></a>';}
+  return $html.'</nav></section>';
+}
+
+function r9_home_outage_module($compact=false){
+  $provider_url=trim((string)r9_setting('outage_provider_url',''));
+  $updated=r9_setting('outage_updated','');
+  $state=sanitize_key(r9_setting('outage_state','informational'));
+  if(!in_array($state,array('no-outage','stale','unavailable','informational'),true))$state='informational';
+  $updated_label=$updated?sanitize_text_field($updated):r9_updated_label();
+  $summary=r9_setting('outage_summary','No verified outage update has been published for Region 9.');
+  $html='<section class="r9-panel r9-outage-tracker r9-outage-state-'.esc_attr($state).($compact?' is-compact':'').'" data-r9-home-module="outage-tracker"><div class="r9-panel-head"><div><span class="r9-eyebrow">POWER OUTAGE TRACKER</span><h2>Power Outage Tracker</h2></div><span class="r9-status-pill">'.esc_html(ucwords(str_replace('-',' ',$state))).'</span></div><div class="r9-outage-body">'.r9_media_placeholder('Region 9 outage map placeholder').'<div class="r9-discussion"><p>'.esc_html($summary).'</p><p><strong>Updated:</strong> '.esc_html($updated_label).'</p><p>No outage counts are shown unless an approved outage update or configured provider link is available.</p><div class="r9-outage-actions"><a href="'.esc_url(home_url('/outage-tracker/')).'">Open full outage page →</a>';
+  if($provider_url)$html.='<a href="'.esc_url($provider_url).'" target="_blank" rel="noopener noreferrer">Provider outage map →</a>';
+  return $html.'</div></div></div></section>';
+}
+
+function r9_home_risk_sidebar_module(){
+  $confidence=r9_home_product_field('forecast-confidence','confidence',0);
+  return '<section class="r9-panel r9-sidebar-module r9-home-risk-confidence" data-r9-sidebar-module="risk-confidence"><div class="r9-panel-head"><h2>Current Region 9 Risk</h2></div><div class="r9-risk-callout '.esc_attr(r9_risk_class()).'"><strong>'.esc_html(r9_risk_label()).'</strong><span>Current Region 9 risk</span></div><div class="r9ls-confidence"><span>Forecast confidence</span><meter min="0" max="100" value="'.esc_attr((int)$confidence).'">'.esc_html((string)(int)$confidence).'%</meter><strong>'.esc_html((string)(int)$confidence).'%</strong></div><p class="r9-sidebar-updated">Latest update: '.esc_html(r9_updated_label()).'</p></section>';
+}
+
+function r9_home_sidebar_fallback(){
+  return r9_home_alert_sidebar_module().r9_home_operations_sidebar_module().r9_home_outage_module(true).r9_home_risk_sidebar_module().'<section class="r9-panel r9-sidebar-module r9-home-emergency-resources"><div class="r9-panel-head"><h2>Emergency Resources</h2></div><ul><li><a href="'.esc_url(home_url('/protection/')).'">Preparedness and protection guidance</a></li><li><a href="'.esc_url(home_url('/watches-warnings/')).'">Watches and warnings explained</a></li><li><a href="'.esc_url(home_url('/radar/')).'">Full-screen radar</a></li></ul></section>';
+}
+
 
 
 function r9_professional_empty_state($title,$summary,$discussion,$graphic_label='Region 9 graphic placeholder'){
@@ -185,7 +255,7 @@ function r9_operational_page_config($slug){$items=array(
 function r9_render_operational_page($slug){$c=r9_operational_page_config($slug);if(!$c)return '';return r9_professional_empty_state($c[0],$c[1],$c[2],$c[3]);}
 function r9_default_sidebar(){return '<section class="r9-panel"><div class="r9-panel-head"><h3>Region 9 Status</h3></div><div class="r9-status-row"><span class="r9-status-pill '.esc_attr(r9_risk_class()).'">'.esc_html(r9_risk_label()).' risk</span><span class="r9-status-pill">Updated '.esc_html(r9_updated_label()).'</span></div></section><section class="r9-panel"><div class="r9-panel-head"><h3>Related Forecasts</h3></div><ul><li><a href="'.esc_url(home_url('/daily/')).'">Daily Forecast</a></li><li><a href="'.esc_url(home_url('/hazards/')).'">Hazards</a></li><li><a href="'.esc_url(home_url('/travel-outdoor/')).'">Travel & Outdoor</a></li><li><a href="'.esc_url(home_url('/agriculture/')).'">Agriculture</a></li></ul></section><section class="r9-panel"><div class="r9-panel-head"><h3>Emergency Resources</h3></div><p>Monitor official warnings, local emergency management, and trusted utility providers during hazardous weather.</p></section>';}
 
-if ( ! defined('R9WS_VERSION') ) define('R9WS_VERSION','5.0.0');
+if ( ! defined('R9WS_VERSION') ) define('R9WS_VERSION','17.1.0');
 if ( ! defined('R9WS_TIMEZONE') ) define('R9WS_TIMEZONE','America/Chicago');
 
 add_action('after_setup_theme', function(){
@@ -198,7 +268,7 @@ function r9ws_latest_update_string(){
     return wp_date('F j, Y g:i A T', null, wp_timezone());
 }
 
-if(!defined('R9WS_THEME_VERSION')) define('R9WS_THEME_VERSION','5.2.0');
+if(!defined('R9WS_THEME_VERSION')) define('R9WS_THEME_VERSION','17.1.0');
 function r9ws_updated_stamp(){
  return '<small class="r9ws-updated">Updated: '.esc_html(wp_date('M j, Y g:i A T')).'</small>';
 }

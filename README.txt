@@ -1,4 +1,4 @@
-Region 9 Weather Studio 4.0
+Region 9 Weather Studio 17.1.0
 
 GeneratePress child theme production release.
 

@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) { define('ABSPATH', __DIR__); }
 function absint($v){ return abs((int)$v); } function sanitize_key($v){ return preg_replace('/[^a-z0-9_\-]/','', strtolower((string)$v)); }
-function sanitize_text_field($v){ return is_array($v) ? '' : trim(strip_tags((string)$v)); } function sanitize_email($v){ return filter_var((string)$v, FILTER_SANITIZE_EMAIL); } function wp_json_encode($v,$o=0){ return json_encode($v,$o); }
+function sanitize_text_field($v){ return is_array($v) ? '' : trim(strip_tags((string)$v)); } function sanitize_email($v){ return filter_var((string)$v, FILTER_SANITIZE_EMAIL); } function esc_url_raw($v){ return filter_var((string)$v, FILTER_SANITIZE_URL); } function wp_json_encode($v,$o=0){ return json_encode($v,$o); }
 function apply_filters($tag,$value){ return $value; } function add_action(){} function add_filter(){} function add_shortcode(){} function register_rest_route($ns,$route,$args){ $GLOBALS['rest_routes'][$ns.$route]=$args; } function __return_true(){ return true; } function current_time(){ return date('Y-m-d H:i:s'); } function get_bloginfo($k){ return '6.6-test'; }
 $GLOBALS['wp_options']=array(); $GLOBALS['wp_transients']=array(); $GLOBALS['scheduled']=array(); $GLOBALS['http_queue']=array();
 function get_option($k,$d=false){ return $GLOBALS['wp_options'][$k] ?? $d; } function update_option($k,$v,$a=false){ $GLOBALS['wp_options'][$k]=$v; return true; } function delete_transient($k){ unset($GLOBALS['wp_transients'][$k]); }
