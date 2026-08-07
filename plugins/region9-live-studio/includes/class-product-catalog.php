@@ -25,7 +25,7 @@ final class R9LS_Product_Catalog {
             'fieldwork-outlook' => array('title'=>'Fieldwork Outlook','category'=>'agriculture','base'=>'Fieldwork'),
             'livestock-weather-stress' => array('title'=>'Livestock Weather Stress','category'=>'agriculture','base'=>'Livestock'),
 
-            'rural-travel-outlook' => array('title'=>'Rural Travel Outlook','category'=>'travel-outdoor','base'=>'Travel'),
+            'travel' => array('title'=>'Rural Travel Outlook','category'=>'travel-outdoor','base'=>'Travel'),
             'commute-forecast' => array('title'=>'Commute Forecast','category'=>'travel-outdoor','base'=>'Travel'),
             'outdoor-event-planner' => array('title'=>'Outdoor Event Planner','category'=>'travel-outdoor','base'=>'Outdoor Events'),
             'lightning-risk-outlook' => array('title'=>'Lightning Risk Outlook','category'=>'travel-outdoor','base'=>'Outdoor Events'),
