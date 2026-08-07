@@ -7,13 +7,19 @@ on:
       - 'functions.php'
       - 'front-page.php'
       - 'page.php'
+      - 'header.php'
+      - 'footer.php'
+      - 'style.css'
       - 'template-parts-studio-home.php'
+      - 'assets/**'
       - 'scripts/**'
       - '.github/workflows/alpha8-live-studio.yml'
   pull_request:
     paths:
       - 'plugins/region9-live-studio/**'
       - '**.php'
+      - 'style.css'
+      - 'assets/**'
       - 'scripts/**'
       - '.github/workflows/alpha8-live-studio.yml'
 jobs:
@@ -38,6 +44,27 @@ jobs:
         run: php scripts/validate-v15-parity.php
       - name: Build plugin ZIP
         run: bash scripts/build-region9-live-studio-zip.sh
+      - name: Build staging theme ZIP
+        run: |
+          set -euo pipefail
+          rm -rf build/theme-package
+          mkdir -p build/theme-package/region9-weather-theme-1
+          rsync -a ./ build/theme-package/region9-weather-theme-1/ \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='build/' \
+            --exclude='plugins/' \
+            --exclude='scripts/' \
+            --exclude='docs/' \
+            --exclude='tests/' \
+            --exclude='vendor/' \
+            --exclude='node_modules/'
+          test -f build/theme-package/region9-weather-theme-1/style.css
+          test -f build/theme-package/region9-weather-theme-1/functions.php
+          test -f build/theme-package/region9-weather-theme-1/header.php
+          test -f build/theme-package/region9-weather-theme-1/front-page.php
+          (cd build/theme-package && zip -qr ../region9-weather-hub-staging-theme.zip region9-weather-theme-1)
+          unzip -t build/region9-weather-hub-staging-theme.zip
       - name: Verify generated release artifacts
         run: |
           set -euo pipefail
@@ -51,6 +78,7 @@ jobs:
           echo "ZIP=$zip" >> "$GITHUB_ENV"
           unzip -t "$zip"
           unzip -l "$zip" region9-live-studio/region9-live-studio.php | grep -q 'region9-live-studio/region9-live-studio.php'
+          unzip -l build/region9-weather-hub-staging-theme.zip region9-weather-theme-1/style.css | grep -q 'region9-weather-theme-1/style.css'
           if [ -f build/SHA256SUMS.txt ]; then
             (cd build && sha256sum -c SHA256SUMS.txt)
             grep -Fq "$(basename "$zip")" build/SHA256SUMS.txt
@@ -76,6 +104,7 @@ jobs:
           name: region9-live-studio-release-artifacts
           path: |
             build/region9-live-studio-*.zip
+            build/region9-weather-hub-staging-theme.zip
             build/SHA256SUMS.txt
             build/region9-live-studio-*-manifest.json
             build/rc1-public-surface-report.json
