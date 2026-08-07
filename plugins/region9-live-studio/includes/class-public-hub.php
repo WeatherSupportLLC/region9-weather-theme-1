@@ -83,7 +83,11 @@ final class R9LS_Public_Hub {
     }
 
     public function outage_shortcode() {
-        $src=apply_filters('r9ls_power_outage_iframe_url','https://outage-pro.com/widget/illinois-storm-chaser/CrYfAWSk');
+        $hub=class_exists('R9LS_Automation_Admin')?get_option(R9LS_Automation_Admin::HUB_SETTINGS,array()):array();
+        $configured=$hub['outage_iframe_url']??'https://outage-pro.com/widget/illinois-storm-chaser/CrYfAWSk';
+        $host=strtolower((string)wp_parse_url($configured,PHP_URL_HOST));
+        if(!in_array($host,array('outage-pro.com','www.outage-pro.com'),true))$configured='https://outage-pro.com/widget/illinois-storm-chaser/CrYfAWSk';
+        $src=apply_filters('r9ls_power_outage_iframe_url',$configured);
         if(!$src || !wp_http_validate_url($src))return '<div class="r9-outage-fallback">Power outage tracking is temporarily unavailable.</div>';
         return '<article class="r9-outage-widget-card" aria-label="Illinois Storm Chaser power outage map"><div class="r9-outage-widget-head"><div><span>REGION 9 COMMUNITY STATUS</span><h2>Power Outage Tracker</h2><p>Live Illinois outage information from Illinois Storm Chaser and Outage Pro.</p></div></div><div class="r9-outage-widget-frame"><iframe src="'.esc_url($src).'" title="Illinois Storm Chaser live power outage tracker" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" style="border:none;overflow:hidden" allowfullscreen></iframe></div><p class="r9-outage-fallback-link"><a href="https://outage-pro.com/" target="_blank" rel="noopener noreferrer">Open Outage Pro if the embedded tracker does not load</a></p></article>';
     }
