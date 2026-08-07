@@ -24,14 +24,12 @@ final class R9LS_Social_Publisher {
     }
 
     public function ensure_schedule() {
-        if (!wp_next_scheduled('r9ls_dispatch_social_outbox')) {
-            wp_schedule_event(time() + 300, 'r9ls_five_minutes', 'r9ls_dispatch_social_outbox');
-        }
+        if (!wp_next_scheduled('r9ls_dispatch_social_outbox')) { wp_schedule_event(time() + 300, 'r9ls_five_minutes', 'r9ls_dispatch_social_outbox'); }
     }
 
     public static function defaults() {
         return array(
-            'mode' => 'manual', // manual|routine|weather-aware|emergency
+            'mode' => 'manual',
             'minimum_risk_level' => 0,
             'post_on_six_hour_cycle' => 0,
             'post_on_material_change' => 1,
@@ -50,9 +48,10 @@ final class R9LS_Social_Publisher {
         $settings = $this->settings();
         if (($settings['mode'] ?? 'manual') === 'manual') { return; }
         $reason = sanitize_key($context['reason'] ?? 'publication');
+        $stored = get_option(R9LS_Product_Generator::PRODUCTS, array());
         foreach ((array)$changed_ids as $id) {
-            if (!isset($products[$id])) { continue; }
-            $product = $products[$id];
+            $product = $stored[$id] ?? ($products[$id] ?? null);
+            if (!$product) { continue; }
             if (!$this->eligible($product, $reason, $settings)) { continue; }
             $this->enqueue($product, $reason, $settings);
         }
@@ -79,15 +78,9 @@ final class R9LS_Social_Publisher {
             $fingerprint = hash('sha256', ($product['content_hash'] ?? '') . '|' . sanitize_key($key) . '|' . $reason);
             if ($this->already_sent($fingerprint) || isset($outbox[$fingerprint])) { continue; }
             $outbox[$fingerprint] = array(
-                'fingerprint'=>$fingerprint,
-                'channel'=>sanitize_key($key),
-                'provider'=>sanitize_key($channel['provider'] ?? 'webhook'),
-                'product_id'=>sanitize_key($product['product_id'] ?? ''),
-                'reason'=>$reason,
-                'payload'=>$this->public_payload($product, $reason, $settings),
-                'attempts'=>0,
-                'next_attempt'=>time(),
-                'created'=>current_time('mysql'),
+                'fingerprint'=>$fingerprint,'channel'=>sanitize_key($key),'provider'=>sanitize_key($channel['provider'] ?? 'webhook'),
+                'product_id'=>sanitize_key($product['product_id'] ?? ''),'reason'=>$reason,'payload'=>$this->public_payload($product, $reason, $settings),
+                'attempts'=>0,'next_attempt'=>time(),'created'=>current_time('mysql'),
             );
         }
         update_option(self::OUTBOX, $outbox, false);
@@ -100,18 +93,11 @@ final class R9LS_Social_Publisher {
         $url = trailingslashit($settings['site_url'] ?? home_url('/'));
         $text = trim($title . ' — ' . $risk . ' risk. ' . $summary . ' ' . $url);
         return array(
-            'product_id'=>sanitize_key($product['product_id'] ?? ''),
-            'title'=>$title,
-            'text'=>wp_strip_all_tags($text),
-            'summary'=>$summary,
-            'risk'=>$risk,
-            'risk_level'=>(int)($product['risk']['level'] ?? 0),
+            'product_id'=>sanitize_key($product['product_id'] ?? ''),'title'=>$title,'text'=>wp_strip_all_tags($text),'summary'=>$summary,
+            'risk'=>$risk,'risk_level'=>(int)($product['risk']['level'] ?? 0),
             'affected_counties'=>array_values(array_map('sanitize_text_field', (array)($product['affected_counties'] ?? array()))),
-            'timing'=>$product['timing'] ?? array(),
-            'updated_at'=>sanitize_text_field($product['updated_at'] ?? ''),
-            'reason'=>$reason,
-            'url'=>esc_url_raw($url),
-            'image_url'=>esc_url_raw($product['image_url'] ?? ''),
+            'timing'=>$product['timing'] ?? array(),'updated_at'=>sanitize_text_field($product['updated_at'] ?? ''),'reason'=>$reason,
+            'url'=>esc_url_raw($url),'image_url'=>esc_url_raw($product['image_url'] ?? $product['graphic_url'] ?? ''),
         );
     }
 
@@ -119,23 +105,16 @@ final class R9LS_Social_Publisher {
         if (get_transient(self::LOCK)) { return; }
         set_transient(self::LOCK, 1, 4 * MINUTE_IN_SECONDS);
         try {
-            $settings = $this->settings();
-            $outbox = get_option(self::OUTBOX, array());
+            $settings = $this->settings(); $outbox = get_option(self::OUTBOX, array());
             foreach ($outbox as $fingerprint => $item) {
                 if ((int)($item['next_attempt'] ?? 0) > time()) { continue; }
                 $channel = $settings['channels'][$item['channel']] ?? array();
                 if (empty($channel['enabled'])) { unset($outbox[$fingerprint]); continue; }
                 $result = $this->send($item, $channel);
-                if (!is_wp_error($result)) {
-                    $this->record($item, 'sent', ''); unset($outbox[$fingerprint]); continue;
-                }
+                if (!is_wp_error($result)) { $this->record($item, 'sent', ''); unset($outbox[$fingerprint]); continue; }
                 $item['attempts'] = (int)($item['attempts'] ?? 0) + 1;
-                if ($item['attempts'] >= 5) {
-                    $this->record($item, 'failed', $result->get_error_message()); unset($outbox[$fingerprint]);
-                } else {
-                    $item['next_attempt'] = time() + min(HOUR_IN_SECONDS, (5 * MINUTE_IN_SECONDS) * (2 ** ($item['attempts'] - 1)));
-                    $outbox[$fingerprint] = $item;
-                }
+                if ($item['attempts'] >= 5) { $this->record($item, 'failed', $result->get_error_message()); unset($outbox[$fingerprint]); }
+                else { $item['next_attempt'] = time() + min(HOUR_IN_SECONDS, (5 * MINUTE_IN_SECONDS) * (2 ** ($item['attempts'] - 1))); $outbox[$fingerprint] = $item; }
             }
             update_option(self::OUTBOX, $outbox, false);
         } finally { delete_transient(self::LOCK); }
@@ -168,11 +147,7 @@ final class R9LS_Social_Publisher {
 
     private function record($item, $status, $error) {
         $history = get_option(self::HISTORY, array());
-        array_unshift($history, array(
-            'fingerprint'=>$item['fingerprint'], 'channel'=>$item['channel'], 'provider'=>$item['provider'],
-            'product_id'=>$item['product_id'], 'reason'=>$item['reason'], 'status'=>$status,
-            'error'=>sanitize_text_field($error), 'time'=>current_time('mysql')
-        ));
+        array_unshift($history, array('fingerprint'=>$item['fingerprint'],'channel'=>$item['channel'],'provider'=>$item['provider'],'product_id'=>$item['product_id'],'reason'=>$item['reason'],'status'=>$status,'error'=>sanitize_text_field($error),'time'=>current_time('mysql')));
         update_option(self::HISTORY, array_slice($history, 0, 1000), false);
         if ($this->audit) { $this->audit->write($status === 'sent' ? 'info' : 'warning', 'Social publication ' . $status . '.', array('product'=>$item['product_id'],'channel'=>$item['channel'],'provider'=>$item['provider'],'error'=>$error)); }
     }
