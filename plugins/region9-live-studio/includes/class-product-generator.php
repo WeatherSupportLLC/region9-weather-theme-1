@@ -64,7 +64,8 @@ class R9LS_Product_Generator {
         }
         $changed = array();
         foreach ($products as $id => $p) {
-            if (($previous[$id]['content_hash'] ?? '') !== $p['content_hash'] || empty($previous[$id]['graphic_url'])) { $changed[] = $id; }
+            $missing_graphic = $this->graphics && empty($previous[$id]['graphic_url']);
+            if (($previous[$id]['content_hash'] ?? '') !== $p['content_hash'] || $missing_graphic) { $changed[] = $id; }
             elseif (!$force_graphics) { $products[$id] = array_merge($p, array_intersect_key($previous[$id], array_flip(array('graphic_url','graphic_path','graphic_hash','graphic_generated_at','graphic_renderer','forecaster','discussion_state_hash')))); }
         }
         update_option(self::PRODUCTS, $products, false);
