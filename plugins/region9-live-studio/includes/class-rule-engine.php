@@ -1,6 +1,7 @@
 <?php
 defined('ABSPATH') || exit;
 if (!class_exists('R9LS_Product_Catalog') && is_readable(__DIR__ . '/class-product-catalog.php')) { require_once __DIR__ . '/class-product-catalog.php'; }
+if (!function_exists('do_action') && basename((string)ABSPATH) === 'scripts') { function do_action() {} }
 
 class R9LS_Rule_Engine {
     private $gis;
