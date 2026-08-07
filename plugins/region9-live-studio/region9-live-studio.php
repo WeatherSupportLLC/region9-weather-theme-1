@@ -17,6 +17,7 @@ require_once R9LS_DIR . 'includes/class-audit-log.php';
 require_once R9LS_DIR . 'includes/class-gis-engine.php';
 require_once R9LS_DIR . 'includes/class-rule-engine.php';
 require_once R9LS_DIR . 'includes/class-national-guidance.php';
+require_once R9LS_DIR . 'includes/class-alert-feed.php';
 require_once R9LS_DIR . 'includes/class-material-change-engine.php';
 require_once R9LS_DIR . 'includes/class-timing-engine.php';
 require_once R9LS_DIR . 'includes/class-product-catalog.php';
@@ -33,6 +34,7 @@ final class R9LS_Plugin {
     public $rules;
     public $changes;
     public $guidance;
+    public $alerts;
     public $scheduler;
     public $admin;
     public $timing;
@@ -41,9 +43,7 @@ final class R9LS_Plugin {
     public $rest;
 
     public static function instance() {
-        if (!self::$instance) {
-            self::$instance = new self();
-        }
+        if (!self::$instance) { self::$instance = new self(); }
         return self::$instance;
     }
 
@@ -53,6 +53,7 @@ final class R9LS_Plugin {
         $this->rules = new R9LS_Rule_Engine($this->gis, $this->audit);
         $this->changes = new R9LS_Material_Change_Engine($this->audit);
         $this->guidance = new R9LS_National_Guidance($this->gis, $this->audit);
+        $this->alerts = new R9LS_Alert_Feed($this->gis, $this->audit);
         $this->scheduler = new R9LS_Scheduler($this->audit, $this->rules, $this->changes, $this->guidance);
         $this->timing = new R9LS_Timing_Engine();
         $this->products = new R9LS_Product_Generator($this->rules, $this->changes, $this->audit, $this->timing);
@@ -62,6 +63,7 @@ final class R9LS_Plugin {
     }
 
     public function boot() {
+        $this->alerts->hooks();
         $this->scheduler->hooks();
         $this->social->hooks();
         $this->admin->hooks();
@@ -71,6 +73,7 @@ final class R9LS_Plugin {
     public static function activate() {
         self::instance()->scheduler->activate();
         self::instance()->social->ensure_schedule();
+        self::instance()->alerts->refresh(true);
     }
 
     public static function deactivate() {
