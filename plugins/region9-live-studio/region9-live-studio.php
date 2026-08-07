@@ -29,6 +29,7 @@ require_once R9LS_DIR . 'includes/class-public-hub.php';
 require_once R9LS_DIR . 'includes/class-rest-api.php';
 require_once R9LS_DIR . 'includes/class-scheduler.php';
 require_once R9LS_DIR . 'includes/class-admin.php';
+require_once R9LS_DIR . 'includes/class-automation-admin.php';
 
 final class R9LS_Plugin {
     private static $instance;
@@ -40,6 +41,7 @@ final class R9LS_Plugin {
     public $alerts;
     public $scheduler;
     public $admin;
+    public $automation_admin;
     public $timing;
     public $products;
     public $graphics;
@@ -69,6 +71,7 @@ final class R9LS_Plugin {
         $this->public_hub = new R9LS_Public_Hub($this->gis, $this->alerts);
         $this->rest = new R9LS_REST_API($this->products);
         $this->admin = new R9LS_Admin($this->scheduler, $this->changes, $this->audit);
+        $this->automation_admin = new R9LS_Automation_Admin($this->audit);
     }
 
     public function boot() {
@@ -79,6 +82,7 @@ final class R9LS_Plugin {
         $this->social->hooks();
         $this->public_hub->hooks();
         $this->admin->hooks();
+        $this->automation_admin->hooks();
         $this->rest->hooks();
     }
 
