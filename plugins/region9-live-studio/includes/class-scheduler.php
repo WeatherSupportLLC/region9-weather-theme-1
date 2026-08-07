@@ -85,9 +85,7 @@ class R9LS_Scheduler {
     }
 
     public function schedule_production_event() {
-        if (wp_next_scheduled(self::PRODUCTION_HOOK)) {
-            return false;
-        }
+        if (wp_next_scheduled(self::PRODUCTION_HOOK)) { return false; }
         $ok = wp_schedule_event(time() + 120, 'r9ls_six_hours', self::PRODUCTION_HOOK);
         if (!$ok) {
             $this->audit->write('error', 'Scheduler failed to schedule six-hour production event.');
@@ -97,17 +95,9 @@ class R9LS_Scheduler {
         return true;
     }
 
-    public function scheduled_validate() {
-        return $this->validate('scheduled-change-check');
-    }
-
-    public function scheduled_production() {
-        return $this->validate('six-hour-production');
-    }
-
-    public function manual_validate() {
-        return $this->validate('manual');
-    }
+    public function scheduled_validate() { return $this->validate('scheduled-change-check'); }
+    public function scheduled_production() { return $this->validate('six-hour-production'); }
+    public function manual_validate() { return $this->validate('manual'); }
 
     public function validate($mode = 'manual') {
         $started = microtime(true);
@@ -142,6 +132,7 @@ class R9LS_Scheduler {
             update_option(self::LAST, $last, false);
             $this->set_health('healthy', 'Last validation completed.', $last);
             $this->audit->write('info', 'Validation completed.', $last);
+            do_action('r9ls_validation_complete', $products, $changes, $mode);
             return array('status' => 'ok', 'products' => $products, 'changes' => $changes, 'duration' => $duration, 'production_triggered' => (bool) $last['production_triggered']);
         } catch (Exception $e) {
             $this->audit->write('error', 'Validation failed.', array('error' => $e->getMessage()));
@@ -154,9 +145,7 @@ class R9LS_Scheduler {
 
     public function locked() {
         $locked_at = get_transient(self::LOCK);
-        if (!$locked_at) {
-            return false;
-        }
+        if (!$locked_at) { return false; }
         if ((time() - absint($locked_at)) > 20 * MINUTE_IN_SECONDS) {
             delete_transient(self::LOCK);
             $this->audit->write('warning', 'Expired validation lock was cleared.');
@@ -174,9 +163,7 @@ class R9LS_Scheduler {
 
     public function next_validation() {
         $next = wp_next_scheduled(self::HOOK);
-        if ($next) {
-            return $next;
-        }
+        if ($next) { return $next; }
         $this->ensure_defaults();
         $this->schedule_event();
         $this->schedule_production_event();
