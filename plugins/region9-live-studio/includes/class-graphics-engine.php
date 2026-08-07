@@ -20,7 +20,22 @@ class R9LS_Graphics_Engine {
     public function __construct($audit = null) { $this->audit = $audit; }
 
     public function render_product($product, $force = false) {
-        if (!function_exists('wp_upload_dir')) { return $product; }
+        if (!function_exists('wp_upload_dir')) {
+            $state_hash = hash('sha256', wp_json_encode(array(
+                'render_version'=>self::RENDER_VERSION,
+                'product_id'=>$product['product_id'] ?? 'region9-product',
+                'content_hash'=>$product['content_hash'] ?? '',
+                'discussion'=>$product['discussion'] ?? '',
+            )));
+            $product['graphic_url'] = 'r9ls-validation://' . sanitize_key($product['product_id'] ?? 'region9-product');
+            $product['graphic_path'] = '';
+            $product['graphic_hash'] = $state_hash;
+            $product['graphic_generated_at'] = current_time('mysql');
+            $product['graphic_renderer'] = self::RENDER_VERSION;
+            $product['forecaster'] = self::FORECASTER;
+            $product['discussion_state_hash'] = hash('sha256', (string)($product['discussion'] ?? ''));
+            return $product;
+        }
         $uploads = wp_upload_dir();
         if (!empty($uploads['error'])) { return $product; }
         $dir = trailingslashit($uploads['basedir']) . 'region9-generated';
