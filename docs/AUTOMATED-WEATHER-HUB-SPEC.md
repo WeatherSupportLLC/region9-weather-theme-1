@@ -48,6 +48,25 @@ Map requirements: individual Region 9 county interaction, event/severity labels,
 ## Power outage widget
 Restore the established public power-outage iframe. Keep the embed source allowlisted/configurable, responsive, appropriately lazy-loaded, and provide a visible fallback link/message when embedding fails or is blocked.
 
+## Social publishing
+Provide optional automated social publishing from the same approved product/publication event; never maintain a separate social forecast state.
+
+Supported connection modes should include direct platform adapters where practical and a generic outbound webhook/broker adapter for services such as Buffer, Make, Zapier or another approved social scheduler. Initial direct-adapter targets may include Facebook Pages/Instagram professional publishing, X, Bluesky and Mastodon when credentials and platform/API access are configured.
+
+Per platform/account controls: enabled/disabled, automatic vs approval-required, allowed product types, minimum risk level, routine six-hour posts, material-change posts, warning/emergency posts, quiet-hours policy, image/video attachment eligibility, text template, hashtags, destination link, retry policy and duplicate suppression.
+
+Recommended modes exposed in Admin:
+- Manual only: generate the social package but require operator Publish.
+- Routine auto: automatically publish selected six-hour products; require approval for higher-impact products.
+- Weather-aware auto: publish routine selected products plus material-change updates based on configured thresholds.
+- Emergency auto: immediately publish selected official warning/emergency updates for Region 9, with strict event allowlists and deduplication.
+
+Each social publication must use the already-approved Region 9 graphic/data, include generated/valid times where appropriate, link back to the canonical Region9Weather.com product/page, preserve alt text for images when the platform supports it, and never represent Region 9 risk as an official NWS/SPC category.
+
+Store delivery records with platform/account, product/publication version, attempt time, remote post ID/URL when returned, success/failure, retry count and sanitized error summary. Never log access tokens or secrets. Credentials must be stored using WordPress/server secret mechanisms rather than bundled in theme/plugin files, exports or public REST responses.
+
+Failed social delivery must never block website publication. Retries must be bounded and idempotent so the same product/version is not posted repeatedly after transient failures.
+
 ## Publication/QC
 Routine deterministic products may auto-publish after validation. Elevated/Significant workflows must support configurable review or emergency auto-publish policy. QC validates geography, risk wording, timing, forecast facts, template completeness, source freshness and public-facing language before publication.
 
@@ -55,7 +74,7 @@ Routine deterministic products may auto-publish after validation. Elevated/Signi
 Every publication stores a versioned record sufficient to show history and restore the last-known-good public product. City forecasts, graphics and forecast updates must expose appropriate archive views without leaking internal/private workspace data.
 
 ## Operations/Admin
-Provide production health for source freshness, cron/queue health, last and next cycle, material-change trigger, product generation status, publication failures, cache state, GIS/map status, alert scope counts, outage embed health and last-known-good state. Admin actions must use WordPress capabilities, nonces, sanitization and allowlisted writes.
+Provide production health for source freshness, cron/queue health, last and next cycle, material-change trigger, product generation status, publication failures, cache state, GIS/map status, alert scope counts, outage embed health, social delivery health and last-known-good state. Admin actions must use WordPress capabilities, nonces, sanitization and allowlisted writes.
 
 ## Acceptance gate
-Do not promote to stable until automated validation and staging verification cover: nine-county geography, 50-mile crawl buffer, five-level risk logic, six-hour scheduling, material-change triggers, all 28 products, homepage modules, GIS map, alert geometry fallback, outage iframe, radar, Current Conditions, city/county pages, archives, responsive/mobile layouts, accessibility, logged-out behavior, caching, stale data, provider failure and last-known-good rollback.
+Do not promote to stable until automated validation and staging verification cover: nine-county geography, 50-mile crawl buffer, five-level risk logic, six-hour scheduling, material-change triggers, all 28 products, homepage modules, GIS map, alert geometry fallback, outage iframe, radar, Current Conditions, city/county pages, archives, social publishing modes/deduplication/failure isolation, responsive/mobile layouts, accessibility, logged-out behavior, caching, stale data, provider failure and last-known-good rollback.
