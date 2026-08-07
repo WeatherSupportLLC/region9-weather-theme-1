@@ -22,6 +22,8 @@ require_once R9LS_DIR . 'includes/class-material-change-engine.php';
 require_once R9LS_DIR . 'includes/class-timing-engine.php';
 require_once R9LS_DIR . 'includes/class-product-catalog.php';
 require_once R9LS_DIR . 'includes/class-product-generator.php';
+require_once R9LS_DIR . 'includes/class-graphic-renderer.php';
+require_once R9LS_DIR . 'includes/class-publication-policy.php';
 require_once R9LS_DIR . 'includes/class-social-publisher.php';
 require_once R9LS_DIR . 'includes/class-public-hub.php';
 require_once R9LS_DIR . 'includes/class-rest-api.php';
@@ -40,6 +42,8 @@ final class R9LS_Plugin {
     public $admin;
     public $timing;
     public $products;
+    public $graphics;
+    public $publication_policy;
     public $social;
     public $public_hub;
     public $rest;
@@ -59,6 +63,8 @@ final class R9LS_Plugin {
         $this->scheduler = new R9LS_Scheduler($this->audit, $this->rules, $this->changes, $this->guidance);
         $this->timing = new R9LS_Timing_Engine();
         $this->products = new R9LS_Product_Generator($this->rules, $this->changes, $this->audit, $this->timing);
+        $this->graphics = new R9LS_Graphic_Renderer($this->audit);
+        $this->publication_policy = new R9LS_Publication_Policy($this->products, $this->audit);
         $this->social = new R9LS_Social_Publisher($this->audit);
         $this->public_hub = new R9LS_Public_Hub($this->gis, $this->alerts);
         $this->rest = new R9LS_REST_API($this->products);
@@ -68,6 +74,8 @@ final class R9LS_Plugin {
     public function boot() {
         $this->alerts->hooks();
         $this->scheduler->hooks();
+        $this->publication_policy->hooks();
+        $this->graphics->hooks();
         $this->social->hooks();
         $this->public_hub->hooks();
         $this->admin->hooks();
