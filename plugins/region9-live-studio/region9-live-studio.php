@@ -33,27 +33,9 @@ require_once R9LS_DIR . 'includes/class-automation-admin.php';
 
 final class R9LS_Plugin {
     private static $instance;
-    public $audit;
-    public $gis;
-    public $rules;
-    public $changes;
-    public $guidance;
-    public $alerts;
-    public $scheduler;
-    public $admin;
-    public $automation_admin;
-    public $timing;
-    public $products;
-    public $graphics;
-    public $publication_policy;
-    public $social;
-    public $public_hub;
-    public $rest;
+    public $audit; public $gis; public $rules; public $changes; public $guidance; public $alerts; public $scheduler; public $admin; public $automation_admin; public $timing; public $products; public $graphics; public $publication_policy; public $social; public $public_hub; public $rest;
 
-    public static function instance() {
-        if (!self::$instance) { self::$instance = new self(); }
-        return self::$instance;
-    }
+    public static function instance() { if (!self::$instance) self::$instance = new self(); return self::$instance; }
 
     private function __construct() {
         $this->audit = new R9LS_Audit_Log();
@@ -75,26 +57,24 @@ final class R9LS_Plugin {
     }
 
     public function boot() {
-        $this->alerts->hooks();
-        $this->scheduler->hooks();
-        $this->publication_policy->hooks();
-        $this->graphics->hooks();
-        $this->social->hooks();
-        $this->public_hub->hooks();
-        $this->admin->hooks();
-        $this->automation_admin->hooks();
-        $this->rest->hooks();
+        $this->alerts->hooks(); $this->scheduler->hooks(); $this->publication_policy->hooks(); $this->graphics->hooks(); $this->social->hooks(); $this->public_hub->hooks(); $this->admin->hooks(); $this->automation_admin->hooks(); $this->rest->hooks();
     }
 
     public static function activate() {
-        self::instance()->scheduler->activate();
-        self::instance()->social->ensure_schedule();
-        self::instance()->alerts->refresh(true);
+        $plugin = self::instance();
+        $plugin->scheduler->activate();
+        $plugin->social->ensure_schedule();
+        $plugin->public_hub->ensure_public_pages();
+        $plugin->gis->refresh_authoritative_counties(true);
+        $plugin->public_hub->ensure_gis_schedule();
+        $plugin->alerts->refresh(true);
+        flush_rewrite_rules(false);
     }
 
     public static function deactivate() {
         self::instance()->scheduler->deactivate();
         wp_clear_scheduled_hook('r9ls_dispatch_social_outbox');
+        wp_clear_scheduled_hook('r9ls_refresh_authoritative_counties');
     }
 }
 
