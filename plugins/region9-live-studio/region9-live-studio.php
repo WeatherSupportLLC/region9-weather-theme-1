@@ -23,6 +23,7 @@ require_once R9LS_DIR . 'includes/class-timing-engine.php';
 require_once R9LS_DIR . 'includes/class-product-catalog.php';
 require_once R9LS_DIR . 'includes/class-product-generator.php';
 require_once R9LS_DIR . 'includes/class-social-publisher.php';
+require_once R9LS_DIR . 'includes/class-public-hub.php';
 require_once R9LS_DIR . 'includes/class-rest-api.php';
 require_once R9LS_DIR . 'includes/class-scheduler.php';
 require_once R9LS_DIR . 'includes/class-admin.php';
@@ -40,6 +41,7 @@ final class R9LS_Plugin {
     public $timing;
     public $products;
     public $social;
+    public $public_hub;
     public $rest;
 
     public static function instance() {
@@ -58,6 +60,7 @@ final class R9LS_Plugin {
         $this->timing = new R9LS_Timing_Engine();
         $this->products = new R9LS_Product_Generator($this->rules, $this->changes, $this->audit, $this->timing);
         $this->social = new R9LS_Social_Publisher($this->audit);
+        $this->public_hub = new R9LS_Public_Hub($this->gis, $this->alerts);
         $this->rest = new R9LS_REST_API($this->products);
         $this->admin = new R9LS_Admin($this->scheduler, $this->changes, $this->audit);
     }
@@ -66,6 +69,7 @@ final class R9LS_Plugin {
         $this->alerts->hooks();
         $this->scheduler->hooks();
         $this->social->hooks();
+        $this->public_hub->hooks();
         $this->admin->hooks();
         $this->rest->hooks();
     }
