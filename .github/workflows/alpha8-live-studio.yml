@@ -38,6 +38,8 @@ jobs:
         run: php scripts/validate-v15-parity.php
       - name: Build plugin ZIP
         run: bash scripts/build-region9-live-studio-zip.sh
+      - name: Build theme ZIP
+        run: bash scripts/build-region9-weather-theme-zip.sh
       - name: Verify generated release artifacts
         run: |
           set -euo pipefail
@@ -51,6 +53,15 @@ jobs:
           echo "ZIP=$zip" >> "$GITHUB_ENV"
           unzip -t "$zip"
           unzip -l "$zip" region9-live-studio/region9-live-studio.php | grep -q 'region9-live-studio/region9-live-studio.php'
+          mapfile -t theme_zips < <(find build -maxdepth 1 -type f -name 'region9-weather-theme-*.zip' | sort)
+          if [ "${#theme_zips[@]}" -ne 1 ]; then
+            printf 'Expected exactly one Region 9 Weather theme ZIP, found %s:\n' "${#theme_zips[@]}" >&2
+            printf '%s\n' "${theme_zips[@]:-}" >&2
+            exit 1
+          fi
+          theme_zip="${theme_zips[0]}"
+          echo "THEME_ZIP=$theme_zip" >> "$GITHUB_ENV"
+          unzip -t "$theme_zip"
           if [ -f build/SHA256SUMS.txt ]; then
             (cd build && sha256sum -c SHA256SUMS.txt)
             grep -Fq "$(basename "$zip")" build/SHA256SUMS.txt
@@ -76,6 +87,7 @@ jobs:
           name: region9-live-studio-release-artifacts
           path: |
             build/region9-live-studio-*.zip
+            build/region9-weather-theme-*.zip
             build/SHA256SUMS.txt
             build/region9-live-studio-*-manifest.json
             build/rc1-public-surface-report.json
