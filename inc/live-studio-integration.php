@@ -2,7 +2,7 @@
 if (!defined('ABSPATH')) exit;
 
 function r9ls_theme_rc1_active(){
-    if (defined('R9LS_VERSION') && version_compare((string) R9LS_VERSION, '17.0.0-rc.1', '>=')) { return true; }
+    if (defined('R9LS_VERSION') && version_compare((string) R9LS_VERSION, '17.1.0', '>=')) { return true; }
     if (class_exists('R9LS_Plugin') && defined('R9LS_VERSION')) { return true; }
     return function_exists('r9ls_get_public_products') && function_exists('r9ls_public_settings');
 }

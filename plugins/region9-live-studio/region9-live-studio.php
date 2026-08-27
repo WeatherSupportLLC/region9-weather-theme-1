@@ -1,14 +1,14 @@
 <?php
 /**
  * Plugin Name: Region 9 Live Studio
- * Description: Automated Region 9 weather operations engine (RC1).
- * Version: 17.0.0-rc.1
+ * Description: Automated Region 9 weather operations engine.
+ * Version: 17.1.0
  * Author: Weather Support LLC
  */
 
 defined('ABSPATH') || exit;
 
-define('R9LS_VERSION', '17.0.0-rc.1');
+define('R9LS_VERSION', '17.1.0');
 define('R9LS_FILE', __FILE__);
 define('R9LS_DIR', plugin_dir_path(__FILE__));
 define('R9LS_URL', plugin_dir_url(__FILE__));
@@ -50,20 +50,22 @@ final class R9LS_Plugin {
         $this->rules = new R9LS_Rule_Engine($this->gis, $this->audit);
         $this->changes = new R9LS_Material_Change_Engine($this->audit);
         $this->guidance = new R9LS_National_Guidance($this->gis, $this->audit);
-        $this->scheduler = new R9LS_Scheduler($this->audit, $this->rules, $this->changes, $this->guidance);
         $this->timing = new R9LS_Timing_Engine();
         $this->products = new R9LS_Product_Generator($this->rules, $this->changes, $this->audit, $this->timing);
+        $this->scheduler = new R9LS_Scheduler($this->audit, $this->rules, $this->changes, $this->guidance, $this->products);
         $this->rest = new R9LS_REST_API($this->products);
-        $this->admin = new R9LS_Admin($this->scheduler, $this->changes, $this->audit);
+        $this->admin = new R9LS_Admin($this->scheduler, $this->changes, $this->audit, $this->products);
     }
 
     public function boot() {
+        R9LS_Product_Generator::migrate_17_1($this->audit);
         $this->scheduler->hooks();
         $this->admin->hooks();
         $this->rest->hooks();
     }
 
     public static function activate() {
+        R9LS_Product_Generator::migrate_17_1(self::instance()->audit);
         self::instance()->scheduler->activate();
     }
 
