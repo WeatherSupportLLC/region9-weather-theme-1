@@ -5,7 +5,7 @@
 <meta charset="<?php bloginfo('charset'); ?>">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <?php wp_head(); ?>
-<link rel="stylesheet" href="<?php echo esc_url(get_stylesheet_directory_uri().'/assets/css/broadcast-global.css?v=20260828-1'); ?>">
+<link rel="stylesheet" href="<?php echo esc_url(get_stylesheet_directory_uri().'/assets/css/broadcast-global.css?v=20260828-2'); ?>">
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
@@ -13,14 +13,7 @@
   <header class="r9-topbar">
     <div class="r9-wrap r9-topbar-inner">
       <a class="r9-brand" href="<?php echo esc_url(home_url('/')); ?>" aria-label="Region 9 Weather home">
-        <?php
-        $custom_logo_id=(int)get_theme_mod('custom_logo');
-        if($custom_logo_id){
-          echo wp_get_attachment_image($custom_logo_id,'full',false,array('class'=>'r9-header-logo','alt'=>'Region 9 Weather'));
-        }else{
-          echo '<img class="r9-header-logo" src="'.esc_url(get_stylesheet_directory_uri().'/assets/images/region9-logo-transparent.png').'" alt="Region 9 Weather">';
-        }
-        ?>
+        <img class="r9-header-logo" src="<?php echo esc_url(get_stylesheet_directory_uri().'/assets/images/region9-logo-white-gold.png'); ?>" alt="Region 9 Weather">
       </a>
       <div class="r9-alert-banner" aria-label="Region 9 alert status">
         <strong>⚠ ACTIVE ALERTS</strong>
@@ -34,14 +27,8 @@
   </header>
   <div class="r9-mainnav-bar">
     <div class="r9-wrap r9-mainnav-inner">
-      <button class="r9-menu-toggle" type="button" aria-expanded="false" aria-controls="r9-main-nav">Menu</button>
-      <nav id="r9-main-nav" class="r9-nav" aria-label="Region 9 Weather primary navigation">
-        <?php wp_nav_menu(array(
-          'theme_location'=>'r9_studio_menu',
-          'container'=>false,
-          'fallback_cb'=>'r9_menu_fallback',
-          'depth'=>2,
-        )); ?>
+      <nav id="r9-main-nav" class="r9-nav r9-nav-home-only" aria-label="Region 9 Weather primary navigation">
+        <ul class="menu"><li class="menu-item current-menu-item"><a href="<?php echo esc_url(home_url('/')); ?>">Home</a></li></ul>
       </nav>
     </div>
   </div>
