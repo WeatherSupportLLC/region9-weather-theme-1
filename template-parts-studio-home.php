@@ -15,6 +15,48 @@
 </section>
 <?php endif; ?>
 
+<section class="r9-section r9-home-daily-primary">
+  <div class="r9-wrap">
+    <div class="r9-section-title"><div><span class="r9-eyebrow">DAILY FORECAST</span><h2>Today's Forecast</h2><p>The latest approved Region 9 forecast for east-central Illinois.</p></div></div>
+    <?php echo r9ls_theme_card('todays-forecast'); ?>
+  </div>
+</section>
+
+<section class="r9-section r9-home-daily-secondary">
+  <div class="r9-wrap">
+    <div class="r9-section-title"><div><span class="r9-eyebrow">FORECAST CENTER</span><h2>More Daily Weather</h2><p>Open any graphic for a full-size view.</p></div><a class="r9-home-daily-link" href="<?php echo esc_url(home_url('/daily/'));?>">Open Daily Forecast →</a></div>
+    <div class="r9-home-daily-boxes">
+      <?php foreach(array('seven-day-forecast'=>'Seven-Day Forecast','morning-weather-brief'=>'Morning Weather Brief','current-conditions'=>'Current Conditions') as $pid=>$label): $p=r9ls_theme_product($pid); $url=$p?($p['graphic_url']??''):''; ?>
+      <article class="r9-home-daily-box">
+        <button type="button" class="r9-home-daily-expand" <?php if($url): ?>data-r9-home-full="<?php echo esc_url($url);?>"<?php endif; ?> aria-label="Expand <?php echo esc_attr($label);?>">
+          <div class="r9-home-daily-image-frame">
+            <?php if($url): ?>
+              <img src="<?php echo esc_url($url);?>" alt="<?php echo esc_attr($label);?>" loading="lazy" decoding="async">
+            <?php else: ?>
+              <div class="r9-home-daily-image-missing">Graphic temporarily unavailable.</div>
+            <?php endif; ?>
+          </div>
+          <div class="r9-home-daily-box-copy"><span><?php echo esc_html(strtoupper($label));?></span><strong><?php echo esc_html($label);?></strong><small>Click to enlarge</small></div>
+        </button>
+      </article>
+      <?php endforeach; ?>
+    </div>
+    <dialog class="r9-home-daily-lightbox" id="r9-home-daily-lightbox"><button type="button" class="r9-home-daily-lightbox-close" aria-label="Close expanded graphic">×</button><img alt="Expanded Region 9 forecast graphic"></dialog>
+  </div>
+</section>
+<script>
+(function(){
+  const dlg=document.getElementById('r9-home-daily-lightbox');
+  if(!dlg) return;
+  const img=dlg.querySelector('img');
+  document.querySelectorAll('[data-r9-home-full]').forEach(function(btn){
+    btn.addEventListener('click',function(){img.src=btn.getAttribute('data-r9-home-full');dlg.showModal();});
+  });
+  dlg.querySelector('.r9-home-daily-lightbox-close').addEventListener('click',function(){dlg.close();});
+  dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close();});
+})();
+</script>
+
 <section class="r9-top-dashboard">
   <div class="r9-wrap r9-operations-grid">
     <article class="r9-panel r9-impact-dashboard">
@@ -53,14 +95,6 @@
     </aside>
   </div>
 </section>
-
-<section class="r9-section r9-forecast-pair-section">
-  <div class="r9-wrap r9-forecast-pair-grid">
-    <?php echo r9ls_theme_card('todays-forecast'); ?>
-    <?php echo r9ls_theme_card('seven-day-forecast'); ?>
-  </div>
-</section>
-
 
 <?php if(r9_setting('social_section_enabled',true)): ?>
 <section class="r9-section r9-social-section">
