@@ -31,19 +31,32 @@ function r9ls_theme_updated($p){$s=r9ls_theme_status($p);$u=$p?($p['updated_at']
 function r9ls_theme_card($id){$p=r9ls_theme_product($id);if(!$p)return '<article class="r9-panel r9ls-product-card is-unavailable"><h3>'.esc_html(ucwords(str_replace('-',' ',$id))).'</h3><p>'.esc_html(r9ls_theme_fallback_language()).'</p></article>';$graphic=!empty($p['graphic_url'])?'<img class="r9-image" src="'.esc_url($p['graphic_url']).'" alt="'.esc_attr($p['title']).' graphic">':r9_media_placeholder(($p['title']??'Forecast').' Graphic');return '<article class="r9-panel r9ls-product-card" data-product="'.esc_attr($id).'"><div class="r9-panel-head"><div><span class="r9-eyebrow">REGION 9 APPROVED PRODUCT</span><h3>'.esc_html($p['title']??$id).'</h3></div>'.r9ls_theme_risk_badge($p['risk']??array()).'</div>'.$graphic.'<p class="r9ls-summary">'.esc_html($p['summary']??'').'</p>'.r9ls_theme_confidence($p).r9ls_theme_time($p).r9ls_theme_counties($p).'<details class="r9ls-discussion"><summary>Full discussion</summary><div>'.wp_kses_post(wpautop($p['discussion']??'')).'</div></details>'.r9ls_theme_updated($p).'</article>';}
 function r9ls_theme_product_grid($slug){$map=r9ls_theme_product_map();$ids=$map[$slug]??array();if(!$ids)return '';return '<section class="r9ls-product-grid">'.implode('',array_map('r9ls_theme_card',$ids)).'</section>';}
 
+function r9ls_theme_daily_live_panel($s){
+    $title=preg_replace('/\s+—.+$/u','',(string)$s['title']);
+    $label=$s['id']==='current-conditions'?'LIVE REGION 9 OBSERVATION SUMMARY':'REGION 9 VERIFIED FORECAST';
+    $updated=($s['updated']&&strtotime($s['updated']))?wp_date('M j, Y g:i A T',strtotime($s['updated'])):'Current cycle';
+    $risk=$s['risk']?ucfirst((string)$s['risk']).' risk':'Risk monitored';
+    $confidence=$s['confidence']?ucfirst((string)$s['confidence']).' confidence':'Confidence monitored';
+    return '<div class="r9-daily-live-panel"><div class="r9-live-kicker">'.esc_html($label).'</div><div class="r9-live-head"><div><span class="r9-live-brand">REGION <b>9</b> WEATHER</span><h2>'.esc_html($title).'</h2><p>East-Central Illinois</p></div><span class="r9-live-risk">'.esc_html($risk).'</span></div><div class="r9-live-body"><div class="r9-live-summary"><span>VERIFIED CURRENT PRODUCT</span><p>'.esc_html($s['excerpt']?:$s['discussion']).'</p></div><div class="r9-live-facts"><div><small>STATUS</small><strong>Current</strong></div><div><small>CONFIDENCE</small><strong>'.esc_html($confidence).'</strong></div><div><small>UPDATED</small><strong>'.esc_html($updated).'</strong></div></div></div><div class="r9-live-footer">Kankakee • Iroquois • Ford • Livingston • DeWitt • Piatt • Champaign • Vermilion • McLean</div></div>';
+}
+
 function r9ls_theme_daily_carousel(){
     $ids=array('todays-forecast','seven-day-forecast','morning-weather-brief','current-conditions');
     $slides=array();
     foreach($ids as $id){
         $p=r9ls_theme_product($id);
         if(!$p) continue;
-        $url=(string)($p['graphic_url']??'');
+        $raw_url=(string)($p['graphic_url']??'');
+        $legacy_auto=$raw_url && strpos($raw_url,'/region9-auto/')!==false;
+        $url=$legacy_auto?'':$raw_url;
         $stamp=(string)($p['updated_at']??'');
         if($url && $stamp){$url=add_query_arg('v',rawurlencode((string)strtotime($stamp)),$url);}
         $slides[]=array(
             'id'=>$id,
             'title'=>(string)($p['title']??ucwords(str_replace('-',' ',$id))),
             'url'=>$url,
+            'legacy_auto'=>$legacy_auto,
+            'excerpt'=>(string)($p['excerpt']??$p['summary']??''),
             'discussion'=>(string)($p['discussion']??''),
             'risk'=>(string)($p['risk']??''),
             'confidence'=>(string)($p['confidence']??''),
@@ -60,6 +73,8 @@ function r9ls_theme_daily_carousel(){
               <button class="r9-daily-expand" type="button" data-r9-full="<?php echo esc_url($s['url']);?>" aria-label="Expand <?php echo esc_attr($s['title']);?>">
                 <img src="<?php echo esc_url($s['url']);?>" alt="<?php echo esc_attr($s['title']);?>" decoding="async" fetchpriority="<?php echo $i===0?'high':'auto';?>">
               </button>
+            <?php elseif($s['legacy_auto']): ?>
+              <?php echo r9ls_theme_daily_live_panel($s); ?>
             <?php else: ?>
               <div class="r9-daily-missing"><strong><?php echo esc_html($s['title']);?></strong><span>Graphic temporarily unavailable.</span></div>
             <?php endif; ?>
@@ -92,8 +107,9 @@ function r9ls_theme_daily_carousel(){
       .r9-daily-arrow{position:absolute;top:50%;z-index:3;transform:translateY(-50%);width:46px;height:62px;border:0;border-radius:12px;background:rgba(4,28,51,.88);color:#fff;font-size:36px;line-height:1;cursor:pointer}.r9-prev{left:12px}.r9-next{right:12px}
       .r9-daily-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.r9-daily-tabs button{padding:13px 10px;border:1px solid #c9d8e6;border-radius:9px;background:#fff;color:#062744;font-weight:800;cursor:pointer}.r9-daily-tabs button.is-active{background:#063d72;color:#fff;border-color:#063d72;box-shadow:inset 0 -3px 0 #f4b400}
       .r9-daily-copy{display:none}.r9-daily-copy.is-active{display:block}.r9-daily-copy p{font-size:1.05rem;line-height:1.7;margin:0}.r9-daily-meta{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.r9-daily-meta span{display:inline-flex;padding:6px 10px;border-radius:999px;background:#edf4fa;color:#163b5c;font-size:.85rem;font-weight:700}
+      .r9-daily-live-panel{width:100%;min-height:560px;padding:32px 56px 28px;color:#fff;background:radial-gradient(circle at 16% 20%,#1268a1 0,#0b3e69 28%,#061d35 64%);display:flex;flex-direction:column;justify-content:space-between}.r9-live-kicker{color:#f4b400;font-weight:900;letter-spacing:.13em;font-size:.8rem}.r9-live-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;border-bottom:2px solid rgba(244,180,0,.75);padding-bottom:18px}.r9-live-brand{font-size:1.25rem;font-weight:900;letter-spacing:.04em}.r9-live-brand b{color:#f4b400;font-size:1.5em}.r9-live-head h2{margin:10px 0 2px;font-size:clamp(2.1rem,5vw,4.6rem);line-height:.98;color:#fff}.r9-live-head p{margin:0;color:#c8d8e6;font-weight:800;text-transform:uppercase;letter-spacing:.1em}.r9-live-risk{background:#178b3f;border-radius:8px;padding:10px 16px;font-weight:900;white-space:nowrap}.r9-live-body{display:grid;grid-template-columns:1.7fr 1fr;gap:28px;margin:32px 0}.r9-live-summary{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:26px}.r9-live-summary span{color:#f4b400;font-weight:900;font-size:.82rem;letter-spacing:.1em}.r9-live-summary p{font-size:clamp(1.25rem,2.3vw,2rem);line-height:1.35;margin:14px 0 0}.r9-live-facts{display:grid;gap:10px}.r9-live-facts div{background:rgba(2,19,36,.72);border:1px solid #1d537d;border-radius:12px;padding:15px 18px}.r9-live-facts small{display:block;color:#83b8dd;font-weight:900;letter-spacing:.1em}.r9-live-facts strong{display:block;margin-top:5px;font-size:1.1rem}.r9-live-footer{padding-top:16px;border-top:1px solid rgba(255,255,255,.2);color:#d7e4ef;font-size:.82rem;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
       .r9-daily-lightbox{width:min(96vw,1500px);max-width:1500px;border:0;border-radius:14px;padding:44px 14px 14px;background:#061d35}.r9-daily-lightbox::backdrop{background:rgba(0,0,0,.84)}.r9-daily-lightbox img{display:block;max-width:100%;max-height:88vh;margin:auto}.r9-daily-close{position:absolute;right:10px;top:7px;border:0;background:transparent;color:#fff;font-size:32px;cursor:pointer}
-      @media(max-width:760px){.r9-daily-tabs{grid-template-columns:1fr 1fr}.r9-daily-slide{min-height:240px}.r9-daily-arrow{width:38px;height:50px;font-size:30px}}
+      @media(max-width:760px){.r9-daily-tabs{grid-template-columns:1fr 1fr}.r9-daily-slide{min-height:240px}.r9-daily-arrow{width:38px;height:50px;font-size:30px}.r9-daily-live-panel{min-height:430px;padding:28px 24px}.r9-live-head{display:block}.r9-live-risk{display:inline-block;margin-top:12px}.r9-live-body{grid-template-columns:1fr;margin:20px 0}.r9-live-summary p{font-size:1.15rem}}
     </style>
     <script>
       (function(){const root=document.getElementById('r9-daily-broadcast');if(!root)return;const slides=[...root.querySelectorAll('[data-r9-slide]')],copies=[...root.querySelectorAll('[data-r9-copy]')],tabs=[...root.querySelectorAll('[data-r9-go]')];let i=0,t;
