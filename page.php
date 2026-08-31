@@ -9,7 +9,7 @@ $item=$catalog[$slug]??array(get_the_title(),'Region 9 Weather information and d
 <?php if($slug!=='daily'):?>
 <header class="r9-page-header"><div class="r9-wrap r9-page-header-inner"><div><span class="r9-eyebrow">REGION 9 WEATHER STUDIO</span><h1><?php the_title();?></h1><p><?php echo esc_html($item[1]);?></p></div><span class="r9-risk r9-page-risk <?php echo esc_attr(r9_risk_class());?>"><?php echo esc_html(r9_risk_label());?> risk</span></div></header>
 <?php endif;?>
-<main class="r9-wrap r9-page-grid"><article class="r9-page-content">
+<main class="r9-wrap r9-page-grid" style="grid-template-columns:1fr;gap:18px;padding-top:20px;padding-bottom:28px;"><article class="r9-page-content">
 <?php if($slug==='daily'):?><?php echo function_exists('r9_daily_web_renderer')?r9_daily_web_renderer():(function_exists('r9ls_theme_daily_carousel')?r9ls_theme_daily_carousel():r9ls_theme_product_grid('daily'));?>
 <?php elseif($slug==='about'):?><section class="r9-about-layout"><div class="r9-panel r9-portrait-card"><div class="r9-panel-head"><h2>Portrait</h2></div><div class="r9-portrait-placeholder"><span aria-hidden="true">＋</span><strong>Portrait Placeholder</strong><small>Upload a professional portrait through the WordPress page editor or Media Library.</small></div></div><div class="r9-panel r9-bio-card"><div class="r9-panel-head"><h2>Biography</h2></div><div class="r9-discussion"><?php $content=trim(get_the_content()); echo $content?apply_filters('the_content',$content):'<p>Add a professional biography, Region 9 Weather background, service area, forecasting experience, and public-service mission here.</p>';?></div></div></section>
 <?php elseif($slug==='severe-weather'):?>
@@ -24,5 +24,18 @@ $item=$catalog[$slug]??array(get_the_title(),'Region 9 Weather information and d
 <?php elseif($slug==='radar'):?><section class="r9-panel r9-radar"><iframe title="KILX WeatherFront Radar" loading="lazy" allowfullscreen src="<?php echo esc_url(r9_setting('radar_url','https://app.weatherfront.com/radar/KILX'));?>"></iframe></section>
 <?php elseif($slug==='alerts'): if(isset($_GET['alert'])&&$_GET['alert']!==''):?><div id="r9-alert-detail" class="r9-alert-detail" data-alert-url="<?php echo esc_attr(esc_url_raw(wp_unslash($_GET['alert'])));?>"><section class="r9-panel r9-alert-detail-loading"><h2>Loading official alert…</h2><p>Region 9 Weather is retrieving the latest bulletin.</p></section></div><?php else: echo do_shortcode('[region9_alert_center]'); endif;
 else: ?><?php $operational=function_exists('r9_render_operational_page')?r9_render_operational_page($slug):''; if($operational){ echo $operational; } else { $grid = r9ls_theme_product_grid($slug); if($grid){ echo $grid; } else { ?><section class="r9-operational-layout r9-forecast-standard"><div class="r9-panel r9-operational-main"><div class="r9-panel-head"><span class="r9-eyebrow">REGION 9 FORECAST</span><h2><?php echo esc_html($item[0]);?> Media</h2></div><?php echo r9_media_placeholder($item[0].' Graphic or Photo');?><div class="r9-status-row"><span class="r9-status-pill">Updated <?php echo esc_html(r9_updated_label());?></span><span class="r9-status-pill <?php echo esc_attr(r9_risk_class());?>"><?php echo esc_html(r9_risk_label());?> risk</span><span class="r9-status-pill">Confidence monitored</span></div></div><div class="r9-panel"><div class="r9-panel-head"><h2>Forecast Discussion</h2></div><div class="r9-discussion"><?php $content=trim(get_the_content()); echo $content?apply_filters('the_content',$content):'<p>The latest meteorologist discussion for this product will appear here after the next forecast update. Region 9 Weather will continue to show verified public information without exposing draft notes.</p>';?></div><div class="r9-key-info"><h3>Key Information</h3><ul><li>Risk: <?php echo esc_html(r9_risk_label());?></li><li>Counties: Region 9 coverage area</li><li>Timing: Updated with approved forecast products</li></ul></div></div></section><?php } } endif; ?>
-</article><aside><?php if(is_active_sidebar('r9-forecast-sidebar'))dynamic_sidebar('r9-forecast-sidebar');elseif(function_exists('r9_default_sidebar'))echo r9_default_sidebar();else echo '<section class="r9-panel"><div class="r9-panel-head"><h3>Region 9 Coverage</h3></div><div class="r9-discussion"><p>Kankakee, Iroquois, Ford, Livingston, Champaign, Vermilion, McLean, DeWitt, and Piatt counties.</p></div></section>';?></aside></main>
+</article><aside class="r9-page-sidebar-full" style="display:grid;grid-template-columns:1fr;gap:18px;margin:0;min-width:0;"><?php if(is_active_sidebar('r9-forecast-sidebar'))dynamic_sidebar('r9-forecast-sidebar');elseif(function_exists('r9_default_sidebar'))echo r9_default_sidebar();else echo '<section class="r9-panel"><div class="r9-panel-head"><h3>Region 9 Coverage</h3></div><div class="r9-discussion"><p>Kankakee, Iroquois, Ford, Livingston, Champaign, Vermilion, McLean, DeWitt, and Piatt counties.</p></div></section>';?></aside></main>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var headings=[].slice.call(document.querySelectorAll('h2,h3')).filter(function(h){return h.textContent.trim().toLowerCase()==='local storm reports';});
+  if(headings.length>1){
+    headings.slice(0,-1).forEach(function(h){var block=h.closest('section,article,.widget,.r9-panel');if(block)block.remove();});
+  }
+  var keep=headings.length?headings[headings.length-1]:null;
+  if(keep){
+    var panel=keep.closest('section,article,.widget,.r9-panel');
+    if(panel){panel.style.width='100%';panel.style.maxWidth='none';panel.style.margin='0';panel.style.gridColumn='1 / -1';}
+  }
+});
+</script>
 <?php endwhile; get_footer();
